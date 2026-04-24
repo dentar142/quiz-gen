@@ -340,6 +340,11 @@ CHAPTERS.forEach(ch => {
 QUESTIONS.forEach(q => { if (!FLAT.includes(q)) FLAT.push(q); });
 
 let idx = 0;
+// Cold-start: restore last position if it's still in range
+try {
+  const _saved = parseInt(localStorage.getItem("sketch-idx") || "0");
+  if (_saved >= 0 && _saved < FLAT.length) idx = _saved;
+} catch(_) {}
 const content = document.getElementById("content");
 
 function escapeHtml(s){
@@ -434,15 +439,18 @@ function render(){
 
   opts.forEach(el => el.addEventListener("click", () => pick(el.dataset.letter)));
   if(btnSubmit) btnSubmit.addEventListener("click", judge);
-  btnNext.addEventListener("click", () => { idx = (idx+1) % FLAT.length; render(); window.scrollTo({top:0, behavior:"smooth"}); });
-  btnPrev.addEventListener("click", () => { idx = (idx-1+FLAT.length) % FLAT.length; render(); window.scrollTo({top:0, behavior:"smooth"}); });
+  const _persist = () => { try { localStorage.setItem("sketch-idx", String(idx)); } catch(_) {} };
+  btnNext.addEventListener("click", () => { idx = (idx+1) % FLAT.length; _persist(); render(); window.scrollTo({top:0, behavior:"smooth"}); });
+  btnPrev.addEventListener("click", () => { idx = (idx-1+FLAT.length) % FLAT.length; _persist(); render(); window.scrollTo({top:0, behavior:"smooth"}); });
 }
 
 render();
 
 // Keyboard
 document.addEventListener("keydown", (e) => {
-  const k = e.key.toUpperCase();
+  let k = e.key.toUpperCase();
+  const _numMap = {"1":"A","2":"B","3":"C","4":"D"};
+  if(_numMap[k]) k = _numMap[k];
   if("ABCD".includes(k)){
     const el = document.querySelector(`.opt[data-letter="${k}"]`);
     if(el) el.click();

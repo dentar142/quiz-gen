@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.2 — 2026-04-24
+
+### Added
+- **Number-row 1-6 → A-F option keys** in all six templates (was A-F letters
+  only). Pressing `1` now picks option A, `2` picks B, etc. Letter keys still
+  work; both methods coexist.
+- **Cold-start view restore**: on page load, if the user was last in mode 1
+  or mode 2, they're auto-resumed there (mode 3 is intentionally excluded —
+  half-finished tests are brittle). Implemented via a single
+  `localStorage["quiz-last-view"]` key written on every `go()` call.
+  Sketch (mode-1 only) restores the last question index via `sketch-idx`
+  with a bounds check so a shrunken bank doesn't crash.
+
+### Notes
+- Both behaviors are fail-soft: a `try { ... } catch {}` shell means private
+  browsing / disabled-storage browsers don't break.
+
 ## 2.0.1 — 2026-04-24
 
 ### Fixed

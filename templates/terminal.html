@@ -772,6 +772,7 @@ let currentMode = null, currentSession = null;
 
 function go(view, extra) {
   currentMode = view;
+  try { localStorage.setItem("quiz-last-view", view); } catch (_) {}
   content.innerHTML = "";
   if (view === "home")   { pathEl.textContent = "~"; renderHome(); return; }
   if (view === "1")      { pathEl.textContent = "~/mode-1"; startMode1(); return; }
@@ -1259,7 +1260,9 @@ function showWrongPractice(){
 // ── Keyboard ─────────────────────────────────────────────
 document.addEventListener("keydown",e=>{
   if(!currentMode||currentMode==="home") return;
-  const k=e.key.toUpperCase();
+  let k=e.key.toUpperCase();
+  const _numMap={"1":"A","2":"B","3":"C","4":"D","5":"E","6":"F"};
+  if(_numMap[k]) k=_numMap[k];
   if("ABCDEF".includes(k)&&k.length===1){
     const opt=document.querySelector(`.option[data-letter="${k}"]`);
     if(opt&&!opt.classList.contains("disabled")) opt.click();
@@ -1275,7 +1278,12 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-go("home");
+// Cold-start: resume last view if user was mid-mode (1 or 2)
+{
+  let _lv = "home";
+  try { _lv = localStorage.getItem("quiz-last-view") || "home"; } catch (_) {}
+  go((_lv === "1" || _lv === "2") ? _lv : "home");
+}
 </script>
 <!--__PWA_REGISTER__-->
 </body>

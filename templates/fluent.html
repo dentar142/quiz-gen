@@ -735,6 +735,7 @@ let currentSession = null;
 
 function go(view, extra) {
   currentMode = view;
+  try { localStorage.setItem("quiz-last-view", view); } catch (_) {}
   content.innerHTML = "";
   if (view === "home") { crumb.textContent = ""; renderHome(); return; }
   if (view === "1" && CONFIG.modes.includes(1)) { crumb.innerHTML = "<span>①</span> " + escapeHtml(t("modes.1_title")); startMode1(); return; }
@@ -1501,7 +1502,10 @@ function showResult() {
 // ============================================================
 document.addEventListener("keydown", (e) => {
   if (currentMode === "home" || currentMode === null) return;
-  const key = e.key.toUpperCase();
+  let key = e.key.toUpperCase();
+  // Number-row 1-6 also picks options
+  const _numMap = {"1":"A","2":"B","3":"C","4":"D","5":"E","6":"F"};
+  if (_numMap[key]) key = _numMap[key];
   // A-F for options
   if ("ABCDEF".includes(key) && key.length === 1) {
     const opt = document.querySelector(`.option[data-letter="${key}"]:not(.disabled)`) ||
@@ -1518,7 +1522,12 @@ document.addEventListener("keydown", (e) => {
 // ============================================================
 // Boot
 // ============================================================
-go("home");
+// Cold-start: resume last view if user was mid-mode (1 or 2)
+{
+  let _lv = "home";
+  try { _lv = localStorage.getItem("quiz-last-view") || "home"; } catch (_) {}
+  go((_lv === "1" || _lv === "2") ? _lv : "home");
+}
 </script>
 </body>
 </html>
