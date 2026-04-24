@@ -9,6 +9,13 @@
 ![claude code skill](https://img.shields.io/badge/Claude%20Code-skill-7C3AED)
 ![python](https://img.shields.io/badge/python-3.9%2B-yellow)
 
+<p align="center">
+  <img src="https://stone.professorlee.work/api/stone/dentar142/quiz-gen" alt="Stone Badge for quiz-gen" />
+  <br>
+  <sub>每个仓库一颗独一无二的 3D 旋转石墩子 · powered by
+  <a href="https://github.com/professor-lee/StoneBadge">StoneBadge</a></sub>
+</p>
+
 ---
 
 ## What it does
