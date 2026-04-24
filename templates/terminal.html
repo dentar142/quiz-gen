@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-color="green">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0a0e14">
+<title>题库练习 · TERMINAL</title>
+<!--__PWA_LINKS__-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Retro Terminal / CRT  — Dark-first design
+============================================================ */
+:root {
+  /* Green phosphor (default) */
+  --fg: #00ff88;
+  --fg-dim: #00aa55;
+  --fg-bright: #88ffcc;
+  --fg-glow: rgba(0,255,136,0.35);
+  --fg-glow-sm: rgba(0,255,136,0.18);
+  --cursor-color: #00ff88;
+  /* Base */
+  --bg: #0a0e14;
+  --bg-panel: #0e1520;
+  --bg-line: #111820;
+  --border: rgba(0,255,136,0.25);
+  --border-dim: rgba(0,255,136,0.12);
+  --success: #00ff88;
+  --danger: #ff4466;
+  --warning: #ffb000;
+  --info: #00aaff;
+  /* Scanline / CRT noise */
+  --scanline-opacity: 0.035;
+  /* Fonts */
+  --mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", "Courier New", monospace;
+}
+/* Amber phosphor variant */
+[data-color="amber"] {
+  --fg: #ffb000;
+  --fg-dim: #cc8800;
+  --fg-bright: #ffd060;
+  --fg-glow: rgba(255,176,0,0.35);
+  --fg-glow-sm: rgba(255,176,0,0.18);
+  --cursor-color: #ffb000;
+  --border: rgba(255,176,0,0.25);
+  --border-dim: rgba(255,176,0,0.12);
+  --success: #ffb000;
+  --danger: #ff4466;
+}
+/* "Light" (paper) mode */
+[data-theme="light"] {
+  --fg: #1a2a1a;
+  --fg-dim: #4a5a4a;
+  --fg-bright: #000000;
+  --fg-glow: transparent;
+  --fg-glow-sm: transparent;
+  --cursor-color: #1a2a1a;
+  --bg: #f0f0e8;
+  --bg-panel: #e8e8e0;
+  --bg-line: #e0e0d8;
+  --border: rgba(0,0,0,0.28);
+  --border-dim: rgba(0,0,0,0.14);
+  --success: #006622;
+  --danger: #cc0033;
+  --warning: #885500;
+  --scanline-opacity: 0;
+}
+
+/* ============================================================
+   Base / CRT pseudo-layer
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: none;
+  text-rendering: geometricPrecision;
+  position: relative;
+  overflow-x: hidden;
+}
+/* CRT scanlines */
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0,0,0,var(--scanline-opacity)) 2px,
+    rgba(0,0,0,var(--scanline-opacity)) 4px
+  );
+}
+/* CRT vignette */
+[data-theme="dark"] body::after {
+  content: "";
+  position: fixed; inset: 0; z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0,0,0,0.55) 100%);
+}
+
+/* ============================================================
+   Scrollbar
+============================================================ */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fg-dim); }
+
+/* ============================================================
+   App shell
+============================================================ */
+.app {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 16px 16px 80px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   ASCII box-drawing card
+============================================================ */
+.box {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg-panel);
+  padding: 0;
+  margin-bottom: 14px;
+  /* Outer glow */
+  box-shadow: 0 0 20px var(--fg-glow-sm), inset 0 0 40px rgba(0,0,0,0.3);
+}
+.box-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--bg-line);
+  border-bottom: 1px solid var(--border-dim);
+  font-size: 12px;
+  color: var(--fg-dim);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.box-title .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--fg);
+  box-shadow: 0 0 8px var(--fg-glow);
+  animation: blink-dot 2s step-end infinite;
+}
+.box-body { padding: 16px 18px; }
+
+/* ============================================================
+   Topbar / terminal chrome
+============================================================ */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg-line);
+  margin-bottom: 14px;
+  box-shadow: 0 0 16px var(--fg-glow-sm);
+}
+.topbar .prompt-user { color: var(--fg); font-weight: 700; }
+.topbar .prompt-at   { color: var(--fg-dim); }
+.topbar .prompt-path { color: var(--info); }
+.topbar .spacer { flex: 1; }
+.topbar .cmd-status {
+  font-size: 12px;
+  color: var(--fg-dim);
+  letter-spacing: 0.3px;
+}
+
+.term-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 140ms;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.term-btn:hover {
+  background: var(--bg-line);
+  color: var(--fg);
+  border-color: var(--fg);
+  box-shadow: 0 0 10px var(--fg-glow-sm);
+}
+.term-btn:active {
+  background: var(--fg);
+  color: var(--bg);
+}
+.term-btn:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
+
+/* ============================================================
+   Home / menu
+============================================================ */
+.term-header {
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  box-shadow: 0 0 20px var(--fg-glow-sm);
+}
+.term-logo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg);
+  text-shadow: 0 0 12px var(--fg-glow);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: pre;
+  line-height: 1.3;
+}
+.term-tagline { color: var(--fg-dim); font-size: 12px; margin-top: 6px; }
+
+.term-line { padding: 2px 0; }
+.term-line .prompt { color: var(--fg-dim); user-select: none; }
+.term-line .prompt::before { content: "$ "; }
+.term-line .cmd   { color: var(--fg-bright); }
+.term-line .arg   { color: var(--info); }
+.term-line .out   { color: var(--fg-dim); padding-left: 20px; }
+.term-line .ok    { color: var(--success); }
+.term-line .err   { color: var(--danger); }
+.term-line .warn  { color: var(--warning); }
+
+.stat-block { margin: 12px 0; padding: 10px 14px; border: 1px solid var(--border-dim); background: var(--bg); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; margin: 8px 0; }
+.stat-item { font-size: 12px; }
+.stat-item .k { color: var(--fg-dim); }
+.stat-item .v { color: var(--fg); font-weight: 600; margin-left: 4px; }
+
+.mode-menu { margin: 14px 0; }
+.menu-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-dim);
+  margin-bottom: 6px;
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 140ms;
+  text-align: left;
+  font-family: var(--mono);
+  color: var(--fg);
+  width: 100%;
+}
+.menu-item:hover {
+  border-color: var(--fg);
+  background: var(--bg-line);
+  box-shadow: 0 0 12px var(--fg-glow-sm);
+}
+.menu-item:active { background: var(--bg-panel); }
+.menu-item .mi-cmd  { color: var(--fg-bright); font-weight: 700; white-space: nowrap; min-width: 120px; }
+.menu-item .mi-sep  { color: var(--fg-dim); }
+.menu-item .mi-desc { color: var(--fg-dim); font-size: 13px; }
+.menu-item .mi-tags { margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+.menu-item .mi-tag  { font-size: 11px; color: var(--info); }
+.menu-item .mi-tag::before { content: "["; color: var(--fg-dim); }
+.menu-item .mi-tag::after  { content: "]"; color: var(--fg-dim); }
+
+/* Chapter list */
+.ch-details summary {
+  cursor: pointer;
+  color: var(--fg-dim);
+  font-size: 12px;
+  padding: 6px 0;
+  list-style: none;
+}
+.ch-details summary::-webkit-details-marker { display: none; }
+.ch-details summary::before { content: "▶ "; }
+.ch-details[open] summary::before { content: "▼ "; }
+.ch-list { margin: 8px 0; padding-left: 18px; }
+.ch-list li { font-size: 12px; color: var(--fg-dim); padding: 2px 0; }
+.ch-list li::before { content: "├─ "; color: var(--border); }
+.ch-list li:last-child::before { content: "└─ "; }
+
+/* ============================================================
+   Quiz view
+============================================================ */
+.quiz-layout {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 270px;
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .quiz-layout { grid-template-columns: 1fr; }
+  .quiz-side { order: -1; }
+}
+
+/* Question header */
+.q-meta-line {
+  font-size: 12px;
+  color: var(--fg-dim);
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 8px;
+}
+.q-meta-line .tag {
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 11px;
+  color: var(--fg);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.q-meta-line .tag.multi { border-color: var(--warning); color: var(--warning); }
+.q-meta-line .tag.tf    { border-color: var(--info);    color: var(--info); }
+.q-meta-line .tag.fill,
+.q-meta-line .tag.short { border-color: var(--fg-dim);  color: var(--fg-dim); }
+
+.q-prompt {
+  margin-bottom: 4px;
+  font-size: 11.5px;
+  color: var(--fg-dim);
+}
+.q-prompt::before { content: "QUERY > "; font-weight: 700; }
+
+.q-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--fg-bright);
+  line-height: 1.75;
+  margin: 0 0 16px;
+  word-break: break-word;
+  text-shadow: 0 0 8px var(--fg-glow-sm);
+}
+
+/* Options as terminal list */
+.options { display: flex; flex-direction: column; gap: 6px; }
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border-dim);
+  background: var(--bg);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  color: var(--fg);
+  text-align: left;
+  transition: all 140ms;
+  word-break: break-word;
+  line-height: 1.55;
+  position: relative;
+}
+.option::before {
+  content: " ";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 140ms;
+}
+.option:hover:not(.disabled) {
+  border-color: var(--fg);
+  color: var(--fg-bright);
+  box-shadow: 0 0 10px var(--fg-glow-sm);
+}
+.option:hover:not(.disabled)::before { background: var(--fg); }
+.option:active:not(.disabled) { background: var(--bg-line); }
+
+.option .key {
+  flex-shrink: 0;
+  min-width: 24px;
+  font-weight: 700;
+  color: var(--fg-dim);
+  transition: color 140ms;
+}
+.key-bracket { color: var(--border); }
+.option:hover:not(.disabled) .key { color: var(--fg); }
+.option .opt-text { flex: 1; padding-top: 1px; }
+
+.option.selected {
+  border-color: var(--fg);
+  background: var(--bg-line);
+  color: var(--fg-bright);
+  box-shadow: 0 0 12px var(--fg-glow-sm);
+}
+.option.selected .key { color: var(--fg); }
+.option.selected::before { background: var(--fg); }
+
+.option.correct {
+  border-color: var(--success);
+  background: rgba(0,255,136,0.06);
+  color: var(--success);
+  box-shadow: 0 0 12px rgba(0,255,136,0.15);
+}
+.option.correct::before { background: var(--success); }
+.option.correct .key { color: var(--success); }
+
+.option.wrong {
+  border-color: var(--danger);
+  background: rgba(255,68,102,0.06);
+  color: var(--danger);
+}
+.option.wrong::before { background: var(--danger); }
+.option.wrong .key { color: var(--danger); }
+.option.wrong .opt-text { text-decoration: line-through; }
+
+.option.disabled { cursor: default; }
+
+/* Fill / short input styled as terminal input */
+.term-input-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 10px 12px;
+  transition: border-color 140ms, box-shadow 140ms;
+}
+.term-input-wrap:focus-within {
+  border-color: var(--fg);
+  box-shadow: 0 0 10px var(--fg-glow-sm);
+}
+.term-input-wrap .prompt-char {
+  color: var(--fg-dim); font-weight: 700; padding-top: 2px; user-select: none;
+}
+.term-textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13.5px;
+  resize: vertical;
+  outline: none;
+  caret-color: var(--cursor-color);
+  min-height: 36px;
+}
+
+/* Blinking cursor on prompt */
+.blink-cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--cursor-color);
+  animation: blink 1.1s step-end infinite;
+  vertical-align: text-bottom;
+  box-shadow: 0 0 8px var(--fg-glow);
+}
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes blink-dot { 50% { opacity: 0.2; } }
+
+/* Feedback / output block */
+.feedback {
+  display: none;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-dim);
+  background: var(--bg);
+  font-size: 13.5px;
+}
+.feedback.show { display: block; animation: typeIn 300ms steps(30); }
+@keyframes typeIn {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to   { opacity: 1; clip-path: inset(0 0% 0 0); }
+}
+.feedback.ok { border-color: var(--success); }
+.feedback.no { border-color: var(--danger); }
+.fb-status {
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.fb-status.ok { color: var(--success); }
+.fb-status.no { color: var(--danger); }
+.fb-status .return-code { font-size: 11px; opacity: 0.7; }
+.fb-row { color: var(--fg-dim); font-size: 13px; }
+.fb-row .fb-key { color: var(--fg); font-weight: 600; }
+.fb-expl { margin-top: 8px; color: var(--fg-dim); font-size: 12.5px; border-top: 1px solid var(--border-dim); padding-top: 8px; }
+
+/* Glitch on submit */
+@keyframes glitch1 {
+  0%,100% { clip-path: inset(40% 0 50% 0); transform: translate(-2px,0); }
+  25%      { clip-path: inset(10% 0 80% 0); transform: translate(2px,0); }
+  75%      { clip-path: inset(70% 0 15% 0); transform: translate(-1px,0); }
+}
+@keyframes glitch2 {
+  0%,100% { clip-path: inset(60% 0 20% 0); transform: translate(2px,0); color: var(--danger); }
+  50%      { clip-path: inset(20% 0 65% 0); transform: translate(-2px,0); }
+}
+.glitch-text { position: relative; }
+.glitch-text::before, .glitch-text::after {
+  content: attr(data-text);
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.glitch-text.glitching::before { animation: glitch1 0.4s linear 1; }
+.glitch-text.glitching::after  { animation: glitch2 0.4s linear 1; }
+
+/* Actions row */
+.actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.actions .spacer { flex: 1; }
+.kb-line {
+  font-size: 11px;
+  color: var(--fg-dim);
+  flex: 1;
+}
+.kb-line kbd {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg-dim);
+}
+
+/* Side panel */
+.side-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fg-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 6px;
+}
+.side-row {
+  display: flex; justify-content: space-between;
+  padding: 5px 0;
+  font-size: 12.5px;
+  border-bottom: 1px dashed var(--border-dim);
+}
+.side-row:last-child { border: none; }
+.side-row .lk { color: var(--fg-dim); }
+.side-row .lv { font-weight: 700; color: var(--fg); }
+.side-row .lv.ok  { color: var(--success); }
+.side-row .lv.err { color: var(--danger); }
+
+/* Progress bar — terminal style */
+.term-progress {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+.term-progress .bar {
+  height: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border-dim);
+  margin-top: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.term-progress .fill {
+  height: 100%;
+  background: var(--fg);
+  box-shadow: 0 0 6px var(--fg-glow);
+  transition: width 400ms;
+}
+
+/* Notes */
+.notes-area {
+  margin-top: 12px;
+  border: 1px solid var(--border-dim);
+  background: var(--bg);
+  padding: 10px 12px;
+  animation: typeIn 200ms steps(20);
+}
+.notes-area textarea {
+  width: 100%;
+  min-height: 72px;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+  caret-color: var(--cursor-color);
+}
+
+/* Color-mode toggle chips */
+.color-toggle {
+  display: inline-flex; gap: 6px; align-items: center;
+}
+.pal-btn {
+  width: 16px; height: 16px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform 120ms;
+}
+.pal-btn:hover { transform: scale(1.2); }
+.pal-btn.green { background: #00ff88; }
+.pal-btn.amber { background: #ffb000; }
+
+/* ============================================================
+   Result
+============================================================ */
+.result-box {
+  padding: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  box-shadow: 0 0 28px var(--fg-glow-sm);
+}
+.result-score-line {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--fg-bright);
+  text-shadow: 0 0 16px var(--fg-glow);
+  margin: 8px 0;
+}
+.result-bar {
+  height: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  margin: 10px 0;
+  overflow: hidden;
+}
+.result-bar .fill {
+  height: 100%;
+  background: var(--fg);
+  box-shadow: 0 0 8px var(--fg-glow);
+  transition: width 800ms;
+}
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 13px;
+}
+.result-table th {
+  text-align: left;
+  padding: 6px 10px;
+  color: var(--fg-dim);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.result-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-dim);
+  color: var(--fg);
+}
+.result-table tr:last-child td { border: none; }
+.result-table .ok { color: var(--success); }
+.result-table .err { color: var(--danger); }
+
+.wrong-entry {
+  border: 1px solid var(--border-dim);
+  border-left: 3px solid var(--danger);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: var(--bg);
+  font-size: 12.5px;
+}
+.wrong-entry .wm  { color: var(--fg-dim); font-size: 11px; margin-bottom: 4px; }
+.wrong-entry .wq  { color: var(--fg);     margin-bottom: 4px; }
+.wrong-entry .wa  { color: var(--success); font-weight: 700; }
+.wrong-entry .wy  { color: var(--danger); }
+
+/* ============================================================
+   Hidden
+============================================================ */
+.hidden { display: none !important; }
+
+/* ============================================================
+   Responsive
+============================================================ */
+@media (max-width: 600px) {
+  .app { padding: 10px 10px 60px; }
+  .box-body { padding: 12px 14px; }
+  .q-text { font-size: 14px; }
+  .option { font-size: 13px; }
+  .actions { flex-direction: column; align-items: stretch; }
+  .term-btn { justify-content: center; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Topbar: terminal prompt -->
+  <header class="topbar" role="banner">
+    <span class="prompt-user" aria-hidden="true">student</span>
+    <span class="prompt-at" aria-hidden="true">@quiz-terminal</span>
+    <span class="prompt-at" aria-hidden="true">:</span>
+    <span class="prompt-path" id="promptPath" aria-hidden="true">~</span>
+    <span class="blink-cursor" aria-hidden="true"></span>
+    <div class="spacer"></div>
+    <!-- palette switcher -->
+    <div class="color-toggle" role="group" aria-label="配色">
+      <button class="pal-btn green" id="palGreen" aria-label="绿色磷光" title="Green"></button>
+      <button class="pal-btn amber" id="palAmber" aria-label="琥珀磷光" title="Amber"></button>
+    </div>
+    <button class="term-btn" id="btnHome" aria-label="返回主页">[HOME]</button>
+    <button class="term-btn" id="btnTheme" aria-label="切换亮色">
+      <span id="themeLabel">PAPER</span>
+    </button>
+  </header>
+
+  <main id="content"></main>
+</div>
+
+<script>
+"use strict";
+const CONFIG = /*__CONFIG_PLACEHOLDER__*/;
+const I18N = /*__I18N_PLACEHOLDER__*/;
+const DATA = /*__DATA_PLACEHOLDER__*/;
+/*__PWA_REGISTER__*/
+
+const QUESTIONS = DATA.questions;
+const CHAPTERS  = DATA.chapters;
+const BY_CHAPTER = {};
+CHAPTERS.forEach(ch => { BY_CHAPTER[ch] = []; });
+QUESTIONS.forEach(q => {
+  if (!BY_CHAPTER[q.chapter]) BY_CHAPTER[q.chapter] = [];
+  BY_CHAPTER[q.chapter].push(q);
+});
+
+const SR_DELAYS = [3, 8, 18, 40, 90, 180];
+
+const LS_KEY = "quiz-term-v1";
+const ls = {
+  load() { try { return JSON.parse(localStorage.getItem(LS_KEY))||{}; } catch { return {}; } },
+  save(o) { try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch {} }
+};
+let appState = Object.assign({
+  theme: "dark",
+  color: "green",
+  mode1: { flatIdx:0, total:0, correct:0 },
+  mode2: { state:{}, total:0, correct:0, now:0, qNum:0 },
+  notes: {}
+}, ls.load());
+function persist() { ls.save(appState); }
+
+function applyTheme() {
+  document.documentElement.setAttribute("data-theme", appState.theme);
+  document.documentElement.setAttribute("data-color", appState.color);
+  document.getElementById("themeLabel").textContent = appState.theme === "dark" ? "PAPER" : "CRT";
+  document.querySelector("meta[name=theme-color]").setAttribute(
+    "content", appState.theme === "dark" ? "#0a0e14" : "#f0f0e8"
+  );
+}
+document.getElementById("btnTheme").addEventListener("click", () => {
+  appState.theme = appState.theme === "dark" ? "light" : "dark";
+  applyTheme(); persist();
+});
+document.getElementById("palGreen").addEventListener("click", () => { appState.color = "green"; applyTheme(); persist(); });
+document.getElementById("palAmber").addEventListener("click", () => { appState.color = "amber"; applyTheme(); persist(); });
+applyTheme();
+
+const content  = document.getElementById("content");
+const pathEl   = document.getElementById("promptPath");
+let currentMode = null, currentSession = null;
+
+function go(view, extra) {
+  currentMode = view;
+  content.innerHTML = "";
+  if (view === "home")   { pathEl.textContent = "~"; renderHome(); return; }
+  if (view === "1")      { pathEl.textContent = "~/mode-1"; startMode1(); return; }
+  if (view === "2")      { pathEl.textContent = "~/mode-2"; startMode2(); return; }
+  if (view === "3")      { pathEl.textContent = "~/mode-3"; startMode3(); return; }
+  if (view === "result") { pathEl.textContent = "~/result"; showResult(extra); return; }
+}
+document.getElementById("btnHome").addEventListener("click", () => {
+  if (currentMode && currentMode !== "home") {
+    if (!confirm(I18N.labels.exit_confirm)) return;
+  }
+  go("home");
+});
+
+// ── Helpers ──────────────────────────────────────────────
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])
+  );
+}
+function shuffle(arr) {
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function arraysEqualUnordered(a,b) {
+  if(a.length!==b.length) return false;
+  return a.slice().sort().join("")===b.slice().sort().join("");
+}
+function normAnswer(s) { return String(s).trim().toLowerCase().replace(/\s+/g," "); }
+function shorten(s,n)  { return s.length>n?s.slice(0,n-1)+"…":s; }
+function typeLabel(t)  { return I18N.labels[t+"_q"]||t; }
+function getLetters(q) { return Object.keys(q.options||{}).filter(k=>q.options[k]); }
+function triggerGlitch(el) {
+  el.setAttribute("data-text", el.textContent);
+  el.classList.add("glitching");
+  setTimeout(()=>el.classList.remove("glitching"), 450);
+}
+
+// ── Home ──────────────────────────────────────────────────
+function renderHome() {
+  const byType={single:0,multi:0,tf:0,fill:0,short:0};
+  QUESTIONS.forEach(q=>{if(byType[q.type]!==undefined)byType[q.type]++;});
+  const m1acc=appState.mode1.total?Math.round(appState.mode1.correct/appState.mode1.total*100):0;
+  const m2=appState.mode2, m2acc=m2.total?Math.round(m2.correct/m2.total*100):0;
+  const avail=(typeof CONFIG!=="undefined"&&CONFIG.modes)?CONFIG.modes:[1,2,3];
+
+  const modeData = [
+    { id:"1", cmd:"quiz --mode=sequential", desc:I18N.modes["1_desc"], tags:[I18N.modes["1_meta_no_shuffle"], I18N.modes["1_meta_loop"], "acc="+m1acc+"%"] },
+    { id:"2", cmd:"quiz --mode=spaced-rep",  desc:I18N.modes["2_desc"], tags:[I18N.modes["2_meta_endless"], "total="+m2.total, "acc="+m2acc+"%"] },
+    { id:"3", cmd:"quiz --mode=test",        desc:I18N.modes["3_desc"], tags:[] },
+  ].filter(m=>avail.includes(Number(m.id)));
+
+  content.innerHTML = `
+    <div class="term-header">
+      <div class="term-logo">┌─────────────────────────────────────┐
+│  QUIZ-GEN TERMINAL  v2.0.0          │
+│  Interactive Study System           │
+└─────────────────────────────────────┘</div>
+      <div class="term-tagline"># ${escapeHtml(I18N.app_subtitle)}</div>
+    </div>
+
+    <div class="box" style="margin-bottom:14px">
+      <div class="box-title"><span class="dot"></span> DATABASE STATUS</div>
+      <div class="box-body">
+        <div class="stat-block">
+          <div class="term-line"><span class="prompt"><span class="cmd">db</span> <span class="arg">--stats</span></span></div>
+          <div class="stat-grid">
+            <div class="stat-item"><span class="k">total_questions</span><span class="v">${QUESTIONS.length}</span></div>
+            ${byType.single?`<div class="stat-item"><span class="k">single_choice</span><span class="v">${byType.single}</span></div>`:""}
+            ${byType.multi ?`<div class="stat-item"><span class="k">multiple_choice</span><span class="v">${byType.multi}</span></div>`:""}
+            ${byType.tf    ?`<div class="stat-item"><span class="k">true_false</span><span class="v">${byType.tf}</span></div>`:""}
+            ${byType.fill  ?`<div class="stat-item"><span class="k">fill_blank</span><span class="v">${byType.fill}</span></div>`:""}
+            ${byType.short ?`<div class="stat-item"><span class="k">short_answer</span><span class="v">${byType.short}</span></div>`:""}
+            <div class="stat-item"><span class="k">chapters</span><span class="v">${CHAPTERS.length}</span></div>
+            <div class="stat-item"><span class="k">mode1_acc</span><span class="v">${m1acc}%</span></div>
+            <div class="stat-item"><span class="k">mode2_acc</span><span class="v">${m2acc}%</span></div>
+          </div>
+          <div class="term-line" style="margin-top:6px"><span class="out ok">→ [OK] Database loaded successfully.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="box-title"><span class="dot"></span> AVAILABLE COMMANDS</div>
+      <div class="box-body">
+        <div class="mode-menu">
+          ${modeData.map(m=>`
+            <button class="menu-item" data-mode="${m.id}">
+              <span class="mi-cmd">$ ${m.cmd}</span>
+              <span class="mi-sep">//</span>
+              <span>
+                <span class="mi-desc">${escapeHtml(m.desc)}</span>
+                <div class="mi-tags">${m.tags.map(t=>`<span class="mi-tag">${escapeHtml(t)}</span>`).join("")}</div>
+              </span>
+            </button>
+          `).join("")}
+        </div>
+        <details class="ch-details">
+          <summary>$ ls chapters/   # list ${CHAPTERS.length} chapters</summary>
+          <ol class="ch-list">
+            ${CHAPTERS.map(c=>`<li>${escapeHtml(c)} (${BY_CHAPTER[c].length})</li>`).join("")}
+          </ol>
+        </details>
+      </div>
+    </div>
+  `;
+  content.querySelectorAll(".menu-item").forEach(el=>
+    el.addEventListener("click",()=>go(el.dataset.mode))
+  );
+}
+
+// ── Quiz renderer ─────────────────────────────────────────
+function renderQuiz(q, opts) {
+  const letters  = getLetters(q);
+  const isMulti  = q.type==="multi";
+  const isFill   = q.type==="fill";
+  const isShort  = q.type==="short";
+  const isChoice = ["single","multi","tf"].includes(q.type);
+  const noteKey  = String(q.id);
+  const hasNotes = typeof CONFIG!=="undefined"?CONFIG.features?.notes!==false:true;
+
+  let optHtml = "";
+  if (isChoice) {
+    optHtml = `<div class="options" role="${isMulti?'group':'radiogroup'}">
+      ${letters.map(L=>`
+        <button class="option" data-letter="${L}" role="${isMulti?'checkbox':'radio'}" aria-checked="false">
+          <span class="key"><span class="key-bracket">[</span>${L}<span class="key-bracket">]</span></span>
+          <span class="opt-text">${escapeHtml(q.options[L])}</span>
+        </button>
+      `).join("")}
+    </div>`;
+  } else {
+    optHtml = `<div class="term-input-wrap" id="inputWrap">
+      <span class="prompt-char">&gt;</span>
+      <textarea class="term-textarea" id="fillInput" rows="${isShort?4:2}"
+        placeholder="${escapeHtml(isFill?I18N.labels.fill_placeholder:I18N.labels.short_placeholder)}"
+        aria-label="${escapeHtml(typeLabel(q.type))}"></textarea>
+    </div>`;
+  }
+
+  const tagClass = q.type==="multi"?"multi":q.type==="tf"?"tf":(q.type==="fill"||q.type==="short")?"fill":"";
+
+  const layout = document.createElement("div");
+  layout.className = "quiz-layout";
+  layout.innerHTML = `
+    <div class="box">
+      <div class="box-title">
+        <span class="dot"></span>
+        QUESTION <span style="color:var(--fg)">#${q.id}</span>
+        <span style="margin-left:8px;opacity:.6;font-size:11px">${escapeHtml(shorten(q.chapter,22))}</span>
+      </div>
+      <div class="box-body">
+        <div class="q-meta-line">
+          <span class="tag ${tagClass}">${typeLabel(q.type)}</span>
+          <span>${I18N.stats.lib_progress}: ${opts.qNum||"?"}/${opts.qTotal||QUESTIONS.length}</span>
+        </div>
+        <div class="q-prompt"></div>
+        <p class="q-text glitch-text">${escapeHtml(q.question)}</p>
+        ${optHtml}
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+        ${hasNotes?`<div class="notes-area hidden" id="notesArea">
+          <div style="font-size:11px;color:var(--fg-dim);margin-bottom:6px"># ${I18N.actions.show_note}</div>
+          <textarea id="noteTa" placeholder="# write notes here…">${escapeHtml(appState.notes[noteKey]||"")}</textarea>
+        </div>`:""}
+        <div class="actions">
+          <div class="kb-line" aria-hidden="true">
+            ${isChoice?`<kbd>${letters[0]}</kbd>–<kbd>${letters[letters.length-1]}</kbd>`:""}
+            <kbd>Enter</kbd> <kbd>←</kbd><kbd>→</kbd>
+          </div>
+          ${opts.onPrev?`<button class="term-btn" id="btnPrev">[PREV]</button>`:""}
+          ${hasNotes?`<button class="term-btn" id="btnNote">[NOTE]</button>`:""}
+          ${(isMulti||isFill||isShort)?`<button class="term-btn" id="btnSubmit">[SUBMIT]</button>`:""}
+          <button class="term-btn hidden" id="btnNext" style="color:var(--fg);border-color:var(--fg)">[NEXT →]</button>
+        </div>
+      </div>
+    </div>
+    <div class="quiz-side">
+      <div class="box">
+        <div class="box-title"><span class="dot"></span> STATS</div>
+        <div class="box-body" style="padding:12px 14px">
+          ${opts.sideStats.map(s=>`
+            <div class="side-row">
+              <span class="lk">${escapeHtml(s.label)}</span>
+              <span class="lv ${s.cls||""}">${escapeHtml(String(s.val))}</span>
+            </div>
+          `).join("")}
+          ${opts.progressPct!=null?`
+            <div class="term-progress">
+              <span>progress [${Math.round(opts.progressPct)}%]</span>
+              <div class="bar"><div class="fill" style="width:${opts.progressPct.toFixed(1)}%"></div></div>
+            </div>
+          `:""}
+        </div>
+      </div>
+    </div>
+  `;
+
+  content.innerHTML="";
+  content.appendChild(layout);
+  window.scrollTo({top:0,behavior:"smooth"});
+
+  const optionEls = layout.querySelectorAll(".option");
+  const feedbackEl = layout.querySelector("#feedback");
+  const btnSubmit  = layout.querySelector("#btnSubmit");
+  const btnNext    = layout.querySelector("#btnNext");
+  const btnPrev    = layout.querySelector("#btnPrev");
+  const btnNote    = layout.querySelector("#btnNote");
+  const notesArea  = layout.querySelector("#notesArea");
+  const noteTa     = layout.querySelector("#noteTa");
+  const fillInput  = layout.querySelector("#fillInput");
+  const qTextEl    = layout.querySelector(".q-text");
+  const selected   = new Set();
+  let submitted    = false;
+
+  if (btnNote && notesArea) {
+    btnNote.addEventListener("click", ()=>{
+      const h=notesArea.classList.toggle("hidden");
+      btnNote.textContent=h?"[NOTE]":"[CLOSE NOTE]";
+      if(!h&&noteTa) noteTa.focus();
+    });
+    if(noteTa) noteTa.addEventListener("input",()=>{ appState.notes[noteKey]=noteTa.value; persist(); });
+  }
+
+  function revealFeedback(ok, correctArr) {
+    if (opts.hideFeedback) return;
+    feedbackEl.classList.add("show", ok?"ok":"no");
+    let rows="";
+    if (isChoice && correctArr.length) {
+      rows = correctArr.map(L=>`<div class="fb-row"><span class="fb-key">[${L}]</span> ${escapeHtml(q.options[L])}</div>`).join("");
+    } else if (isFill) {
+      rows = `<div class="fb-row"><span class="fb-key">${I18N.labels.correct_answer}:</span> ${escapeHtml((q.answer||[]).join(" | "))}</div>`;
+    } else {
+      rows = `<div class="fb-row"><span class="fb-key">${I18N.labels.correct_answer}:</span> ${escapeHtml((q.answer||[]).join("；"))}</div>`;
+    }
+    const rc = ok?"exit(0)":"exit(1)";
+    feedbackEl.innerHTML=`
+      <div class="fb-status ${ok?"ok":"no"}">
+        ${ok?"✓ "+I18N.labels.correct:"✗ "+I18N.labels.wrong}
+        <span class="return-code">${rc}</span>
+      </div>
+      ${rows}
+      ${q.explanation?`<div class="fb-expl"># ${escapeHtml(q.explanation)}</div>`:""}
+    `;
+    if (qTextEl) triggerGlitch(qTextEl);
+  }
+
+  function submit() {
+    if (submitted) return;
+    let ok=false, userArr=[], correctArr=[];
+    if (isChoice) {
+      if (!selected.size) return;
+      userArr    = Array.from(selected);
+      correctArr = String(q.answer).split("");
+      ok         = arraysEqualUnordered(userArr, correctArr);
+      optionEls.forEach(el=>{
+        el.classList.add("disabled");
+        const L=el.dataset.letter;
+        el.classList.remove("selected");
+        if(opts.hideFeedback){ if(userArr.includes(L))el.classList.add("selected"); }
+        else {
+          if(correctArr.includes(L))   el.classList.add("correct");
+          else if(userArr.includes(L)) el.classList.add("wrong");
+        }
+      });
+    } else if (isFill) {
+      const v=(fillInput?.value||"").trim();
+      if(!v) return;
+      userArr=[v];
+      const acc=Array.isArray(q.answer)?q.answer:[q.answer];
+      ok=acc.some(a=>normAnswer(a)===normAnswer(v));
+      if(fillInput){ fillInput.disabled=true; layout.querySelector("#inputWrap").style.borderColor=ok?"var(--success)":"var(--danger)"; }
+    } else {
+      if(fillInput) fillInput.disabled=true;
+    }
+    submitted=true;
+    revealFeedback(ok,correctArr);
+    if(btnSubmit) btnSubmit.classList.add("hidden");
+    btnNext?.classList.remove("hidden");
+    btnNext?.focus();
+    opts.onAnswer({correct:ok,user:userArr});
+  }
+
+  optionEls.forEach(el=>{
+    el.addEventListener("click",()=>{
+      if(submitted) return;
+      if(isMulti){ if(selected.has(el.dataset.letter))selected.delete(el.dataset.letter);else selected.add(el.dataset.letter); }
+      else { selected.clear(); selected.add(el.dataset.letter); }
+      optionEls.forEach(e=>{ const s=selected.has(e.dataset.letter); e.classList.toggle("selected",s); e.setAttribute("aria-checked",String(s)); });
+      if(!isMulti) submit();
+    });
+  });
+  if(btnSubmit) btnSubmit.addEventListener("click",submit);
+  if(btnNext)   btnNext.addEventListener("click",()=>opts.onNext());
+  if(btnPrev&&opts.onPrev) btnPrev.addEventListener("click",opts.onPrev);
+}
+
+// ── Mode 1 ────────────────────────────────────────────────
+function startMode1(){
+  const flat=[];
+  CHAPTERS.forEach(c=>BY_CHAPTER[c].forEach(q=>flat.push(q)));
+  if(!flat.length){go("home");return;}
+  let idx=appState.mode1.flatIdx||0;
+  if(idx>=flat.length)idx=0;
+  currentSession={flat,idx,sessionTotal:0,sessionCorrect:0};
+  showMode1();
+}
+function showMode1(){
+  const sess=currentSession,q=sess.flat[sess.idx],ch=q.chapter;
+  const chT=BY_CHAPTER[ch].length,chI=BY_CHAPTER[ch].indexOf(q)+1;
+  const tAcc=appState.mode1.total?Math.round(appState.mode1.correct/appState.mode1.total*100):0;
+  const sAcc=sess.sessionTotal?Math.round(sess.sessionCorrect/sess.sessionTotal*100):0;
+  renderQuiz(q,{
+    qNum:sess.idx+1, qTotal:sess.flat.length,
+    sideStats:[
+      {label:"chapter",val:shorten(ch,12)},
+      {label:"ch_pos", val:`${chI}/${chT}`},
+      {label:"idx",    val:`${sess.idx+1}/${sess.flat.length}`},
+      {label:"sess_acc",val:`${sAcc}%`,cls:sess.sessionTotal&&sAcc<60?"err":"ok"},
+      {label:"total_acc",val:`${tAcc}%`},
+    ],
+    progressPct:((sess.idx+1)/sess.flat.length)*100,
+    onAnswer({correct}){sess.sessionTotal++;if(correct)sess.sessionCorrect++;appState.mode1.total++;if(correct)appState.mode1.correct++;persist();},
+    onNext(){sess.idx=(sess.idx+1)%sess.flat.length;appState.mode1.flatIdx=sess.idx;persist();showMode1();},
+    onPrev:sess.idx>0?()=>{sess.idx=(sess.idx-1+sess.flat.length)%sess.flat.length;appState.mode1.flatIdx=sess.idx;persist();showMode1();}:null
+  });
+}
+
+// ── Mode 2 ────────────────────────────────────────────────
+function startMode2(){
+  const m2=appState.mode2;
+  QUESTIONS.forEach(q=>{if(!m2.state[q.id])m2.state[q.id]={level:0,due:0};});
+  currentSession={sessionTotal:0,sessionCorrect:0};
+  showMode2();
+}
+function pickMode2(){
+  const m2=appState.mode2,now=m2.now;
+  let due=QUESTIONS.filter(q=>(m2.state[q.id]?.due??0)<=now);
+  if(!due.length){const nd=Math.min(...QUESTIONS.map(q=>m2.state[q.id]?.due??0));m2.now=nd;due=QUESTIONS.filter(q=>(m2.state[q.id]?.due??0)<=m2.now);}
+  due.sort((a,b)=>{const la=m2.state[a.id].level,lb=m2.state[b.id].level;return la!==lb?la-lb:Math.random()-.5;});
+  const sl=due.slice(0,Math.max(1,Math.ceil(due.length/3)));
+  return sl[Math.floor(Math.random()*sl.length)];
+}
+function showMode2(){
+  const m2=appState.mode2,sess=currentSession,q=pickMode2();
+  m2.qNum++;
+  const sAcc=sess.sessionTotal?Math.round(sess.sessionCorrect/sess.sessionTotal*100):0;
+  const tAcc=m2.total?Math.round(m2.correct/m2.total*100):0;
+  const levels=new Array(SR_DELAYS.length+1).fill(0);
+  QUESTIONS.forEach(qq=>levels[m2.state[qq.id]?.level||0]++);
+  const mastered=QUESTIONS.length-levels[0];
+  renderQuiz(q,{
+    qNum:m2.qNum, qTotal:QUESTIONS.length,
+    sideStats:[
+      {label:"sess_answered",val:sess.sessionTotal},
+      {label:"sess_acc",val:`${sAcc}%`,cls:sess.sessionTotal&&sAcc<60?"err":"ok"},
+      {label:"total_ans",val:m2.total},
+      {label:"total_acc",val:`${tAcc}%`},
+      {label:"mastered",val:`${mastered}/${QUESTIONS.length}`},
+    ],
+    progressPct:(mastered/QUESTIONS.length)*100,
+    onAnswer({correct}){sess.sessionTotal++;m2.total++;if(correct){sess.sessionCorrect++;m2.correct++;}const st=m2.state[q.id];st.level=correct?Math.min((st.level||0)+1,SR_DELAYS.length-1):0;const base=SR_DELAYS[st.level];st.due=m2.now+base+Math.floor(Math.random()*Math.max(2,Math.floor(base/4)));m2.now++;persist();},
+    onNext(){showMode2();}
+  });
+}
+
+// ── Mode 3 ────────────────────────────────────────────────
+function startMode3(){
+  const cfg=(typeof CONFIG!=="undefined"&&CONFIG.test_config)||{};
+  const scoring=(typeof CONFIG!=="undefined"&&CONFIG.scoring)||{single:5,multi:3,tf:2,fill:4,short:6};
+  const wants={single:cfg.single??20,multi:cfg.multi??10,tf:cfg.tf??0,fill:cfg.fill??0,short:cfg.short??0};
+  const pool={};
+  ["single","multi","tf","fill","short"].forEach(t=>{pool[t]=shuffle(QUESTIONS.filter(q=>q.type===t));});
+  if((wants.single&&pool.single.length<wants.single)||(wants.multi&&pool.multi.length<wants.multi)){
+    alert(I18N.labels.no_questions);go("home");return;
+  }
+  const set=[...pool.single.slice(0,wants.single),...pool.multi.slice(0,wants.multi),...pool.tf.slice(0,wants.tf),...pool.fill.slice(0,wants.fill),...pool.short.slice(0,wants.short)];
+  currentSession={set,idx:0,answers:new Array(set.length).fill(null),scoring};
+  showMode3();
+}
+function showMode3(){
+  const sess=currentSession;
+  if(sess.idx>=sess.set.length){go("result",sess);return;}
+  const q=sess.set[sess.idx];
+  renderQuiz(q,{
+    hideFeedback:true,
+    qNum:sess.idx+1,qTotal:sess.set.length,
+    sideStats:[
+      {label:"type",val:typeLabel(q.type)},
+      {label:"progress",val:`${sess.idx+1}/${sess.set.length}`},
+      {label:"answered",val:sess.answers.filter(x=>x!==null).length},
+    ],
+    progressPct:((sess.idx+1)/sess.set.length)*100,
+    onAnswer({user,correct}){sess.answers[sess.idx]={user,correct};},
+    onNext(){sess.idx++;showMode3();}
+  });
+}
+
+// ── Result ────────────────────────────────────────────────
+function showResult(sess){
+  const scoring=sess.scoring||{single:5,multi:3,tf:2,fill:4,short:6};
+  let total=0,maxS=0;
+  const typeCounts={},typeOk={};
+  const wrongs=[];
+  sess.set.forEach((q,i)=>{
+    const pts=scoring[q.type]||0;maxS+=pts;
+    typeCounts[q.type]=(typeCounts[q.type]||0)+1;
+    typeOk[q.type]=(typeOk[q.type]||0);
+    const a=sess.answers[i];
+    const ok=a&&a.correct&&q.type!=="short";
+    if(ok){total+=pts;typeOk[q.type]++;}
+    if(!ok&&q.type!=="short") wrongs.push({q,user:a?a.user.join(""):"—"});
+  });
+  if(!maxS)maxS=1;
+  const pct=Math.round(total/maxS*100);
+  const hasWP=typeof CONFIG!=="undefined"?CONFIG.features?.wrong_practice!==false:true;
+  const bar=Math.round(pct/2); // out of 50 chars
+  const barStr="█".repeat(bar)+"░".repeat(50-bar);
+
+  content.innerHTML=`
+    <div class="result-box">
+      <div class="term-line"><span class="out">--- TEST COMPLETE ---</span></div>
+      <div class="result-score-line">${total} / ${maxS} pts &nbsp; [${pct}%]</div>
+      <div style="font-size:12px;color:var(--fg-dim);font-family:var(--mono);margin:4px 0">${barStr}</div>
+      <div class="result-bar" style="margin-top:8px"><div class="fill" style="width:${pct}%"></div></div>
+
+      <table class="result-table">
+        <thead><tr><th>TYPE</th><th>CORRECT</th><th>TOTAL</th><th>STATUS</th></tr></thead>
+        <tbody>
+          ${Object.keys(typeCounts).map(t=>`
+            <tr>
+              <td>${typeLabel(t)}</td>
+              <td class="${typeOk[t]===typeCounts[t]?"ok":"err"}">${typeOk[t]||0}</td>
+              <td>${typeCounts[t]}</td>
+              <td class="${typeOk[t]===typeCounts[t]?"ok":"err"}">${typeOk[t]===typeCounts[t]?"PASS":"FAIL"}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+        <button class="term-btn" id="btnRetry">[RETRY]</button>
+        ${hasWP&&wrongs.length?`<button class="term-btn" id="btnWrong">[WRONG PRACTICE]</button>`:""}
+        <button class="term-btn" id="btnHome2">[HOME]</button>
+      </div>
+
+      ${!wrongs.length?`<div class="term-line"><span class="ok">✓ All correct! 🎉</span></div>`:""}
+      ${wrongs.length?`
+        <div style="margin-top:16px">
+          <div class="term-line"><span class="err">✗ ${wrongs.length} wrong answers:</span></div>
+          <div style="margin-top:10px">
+            ${wrongs.map(w=>`
+              <div class="wrong-entry">
+                <div class="wm">#${w.q.id} · ${typeLabel(w.q.type)} · ${escapeHtml(w.q.chapter)}</div>
+                <div class="wq">${escapeHtml(w.q.question)}</div>
+                <div class="wy">your_ans = ${escapeHtml(w.user||I18N.labels.no_answer)}</div>
+                <div class="wa">correct  = ${escapeHtml(String(w.q.answer))}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `:""}
+    </div>
+  `;
+  document.getElementById("btnRetry")?.addEventListener("click",()=>go("3"));
+  document.getElementById("btnHome2")?.addEventListener("click",()=>go("home"));
+  document.getElementById("btnWrong")?.addEventListener("click",()=>{
+    currentSession={flat:wrongs.map(w=>w.q),idx:0,sessionTotal:0,sessionCorrect:0};
+    currentMode="1wp";pathEl.textContent="~/wrong-practice";showWrongPractice();
+  });
+}
+function showWrongPractice(){
+  const sess=currentSession;
+  if(sess.idx>=sess.flat.length){go("home");return;}
+  const q=sess.flat[sess.idx];
+  renderQuiz(q,{
+    qNum:sess.idx+1,qTotal:sess.flat.length,
+    sideStats:[{label:"wrong_progress",val:`${sess.idx+1}/${sess.flat.length}`}],
+    progressPct:((sess.idx+1)/sess.flat.length)*100,
+    onAnswer({correct}){sess.sessionTotal++;if(correct)sess.sessionCorrect++;},
+    onNext(){sess.idx++;showWrongPractice();}
+  });
+}
+
+// ── Keyboard ─────────────────────────────────────────────
+document.addEventListener("keydown",e=>{
+  if(!currentMode||currentMode==="home") return;
+  const k=e.key.toUpperCase();
+  if("ABCDEF".includes(k)&&k.length===1){
+    const opt=document.querySelector(`.option[data-letter="${k}"]`);
+    if(opt&&!opt.classList.contains("disabled")) opt.click();
+  } else if(e.key==="Enter"){
+    const nx=document.getElementById("btnNext");
+    if(nx&&!nx.classList.contains("hidden")){nx.click();return;}
+    document.getElementById("btnSubmit")?.click();
+  } else if(e.key==="ArrowRight"){
+    const nx=document.getElementById("btnNext");
+    if(nx&&!nx.classList.contains("hidden")) nx.click();
+  } else if(e.key==="ArrowLeft"){
+    document.getElementById("btnPrev")?.click();
+  }
+});
+
+go("home");
+</script>
+<!--__PWA_REGISTER__-->
+</body>
+</html>

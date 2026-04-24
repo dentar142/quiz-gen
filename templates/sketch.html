@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>题库 · 手绘本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Long+Cang&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F1E1;
+  --paper-line:#D8CDA9;
+  --ink:#2A2520;
+  --ink-soft:#5A4F3F;
+  --pencil:#7A6F5C;
+  --red:#C7382A;
+  --green:#2D7A3C;
+  --blue:#1E5FA8;
+  --yellow:rgba(247, 220, 90, 0.55);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  background:var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg,
+      transparent 0,
+      transparent 31px,
+      rgba(180,160,120,0.18) 31px,
+      rgba(180,160,120,0.18) 32px
+    ),
+    radial-gradient(circle at 20% 5%, rgba(220,200,150,0.18), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(190,170,130,0.12), transparent 40%);
+  color:var(--ink);
+  font-family:"Kalam","Caveat","ZCOOL KuaiLe","Long Cang",
+    "Microsoft YaHei",-apple-system,sans-serif;
+  font-size:18px;
+  line-height:1.6;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+body{
+  padding:24px 18px 60px;
+  position:relative;
+}
+/* Margin red line like notebook */
+body::before{
+  content:"";
+  position:fixed;
+  left:60px;top:0;bottom:0;width:2px;
+  background:rgba(199,56,42,0.35);
+  pointer-events:none;
+  filter:url(#wobble);
+}
+@media (max-width:720px){ body::before{ left:24px } }
+
+/* Hand-drawn wobble filter applied to most strokes */
+.svg-defs{position:absolute;width:0;height:0;pointer-events:none}
+
+.wrap{
+  max-width:760px;
+  margin:0 auto;
+  padding-left:30px;
+}
+@media (max-width:720px){ .wrap{padding-left:0} }
+
+/* ----- Header ----- */
+.head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:20px;
+  padding-bottom:10px;
+  border-bottom:2.5px solid var(--ink);
+  filter:url(#wobble);
+}
+.head h1{
+  font-family:"ZCOOL KuaiLe","Caveat","Kalam",sans-serif;
+  font-size:32px;
+  font-weight:400;
+  letter-spacing:0.02em;
+  color:var(--ink);
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+}
+.head h1 .doodle{font-family:"Caveat",cursive;font-size:36px;color:var(--red);transform:rotate(-4deg);display:inline-block}
+.head .meta{
+  font-family:"Caveat",cursive;
+  font-size:22px;
+  color:var(--pencil);
+}
+
+/* ----- Sketch box (hand-drawn rectangle around content) ----- */
+.sketch-box{
+  position:relative;
+  padding:22px 26px;
+  margin-bottom:18px;
+  background:transparent;
+}
+.sketch-box::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:2px solid var(--ink);
+  border-radius:14px 22px 18px 28px / 22px 16px 28px 18px;
+  filter:url(#wobble);
+  pointer-events:none;
+}
+
+/* ----- Question card ----- */
+.q-tag{
+  position:absolute;
+  top:-12px;left:18px;
+  background:var(--paper);
+  padding:0 10px;
+  font-family:"Caveat",cursive;
+  font-size:20px;
+  color:var(--red);
+  font-weight:700;
+  transform:rotate(-2deg);
+}
+.q-meta{
+  font-family:"Caveat",cursive;
+  font-size:18px;
+  color:var(--pencil);
+  margin-bottom:10px;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.q-text{
+  font-size:20px;
+  line-height:1.7;
+  color:var(--ink);
+  margin-bottom:6px;
+  font-weight:500;
+}
+.q-text::first-letter{font-size:1.05em}
+
+/* ----- Options ----- */
+.opts{
+  margin-top:14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.opt{
+  position:relative;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:12px 16px 12px 14px;
+  background:transparent;
+  border:none;
+  text-align:left;
+  font:inherit;
+  color:var(--ink);
+  cursor:pointer;
+  transition:transform 120ms ease;
+}
+.opt::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:1.8px solid var(--ink-soft);
+  border-radius:18px 8px 22px 10px / 10px 22px 8px 18px;
+  filter:url(#wobble);
+  transition:border-color 150ms ease,background 150ms ease;
+  pointer-events:none;
+}
+.opt:hover:not(.locked)::before{ border-color:var(--blue) }
+.opt:hover:not(.locked){ transform:translate(1px,-1px) rotate(-0.2deg) }
+
+.letter{
+  flex-shrink:0;
+  width:34px;height:34px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:"Caveat",cursive;
+  font-weight:700;
+  font-size:22px;
+  color:var(--ink);
+  position:relative;
+}
+.letter::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border:2px solid var(--ink);
+  border-radius:50%;
+  filter:url(#wobble2);
+}
+.opt-text{flex:1;font-size:18px;line-height:1.55;padding-top:2px}
+
+/* States */
+.opt.correct .letter{ color:var(--green) }
+.opt.correct .letter::before{ border-color:var(--green) }
+.opt.correct{ background:linear-gradient(180deg, transparent 60%, rgba(45,122,60,0.18) 60%) }
+.opt.wrong .letter{ color:var(--red) }
+.opt.wrong .letter::before{ border-color:var(--red) }
+.opt.wrong .opt-text{ text-decoration:line-through; text-decoration-style:wavy; text-decoration-color:var(--red); text-decoration-thickness:1.5px }
+.opt.selected:not(.correct):not(.wrong) .letter{color:var(--blue)}
+.opt.selected:not(.correct):not(.wrong) .letter::before{border-color:var(--blue)}
+.opt.locked{cursor:default}
+
+/* Highlighter on correct option text */
+.opt.correct .opt-text{
+  background:linear-gradient(180deg, transparent 55%, var(--yellow) 55%, var(--yellow) 92%, transparent 92%);
+  padding:0 4px;
+  border-radius:2px;
+}
+
+/* ----- Feedback note ----- */
+.feedback{
+  display:none;
+  margin-top:18px;
+  padding:14px 18px;
+  position:relative;
+  font-size:18px;
+}
+.feedback.show{display:block}
+.feedback::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:2px dashed var(--ink-soft);
+  border-radius:10px 22px 14px 26px / 22px 12px 24px 14px;
+  filter:url(#wobble);
+}
+.feedback.ok{ color:var(--green) }
+.feedback.ok::before{ border-color:var(--green) }
+.feedback.no{ color:var(--red) }
+.feedback.no::before{ border-color:var(--red) }
+.feedback .stamp{
+  font-family:"Caveat",cursive;
+  font-size:30px;
+  font-weight:700;
+  display:inline-block;
+  transform:rotate(-6deg);
+  margin-right:10px;
+  border:3px solid currentColor;
+  padding:2px 14px;
+  border-radius:10px 4px 14px 6px;
+  filter:url(#wobble);
+}
+.feedback .ans{
+  margin-top:8px;
+  font-size:18px;
+  color:var(--ink);
+}
+.feedback .ans b{color:var(--red);font-size:22px;font-family:"Caveat",cursive}
+
+/* ----- Actions ----- */
+.actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-top:24px;
+  flex-wrap:wrap;
+}
+.btn{
+  position:relative;
+  padding:10px 22px;
+  background:transparent;
+  border:none;
+  font:inherit;
+  font-size:20px;
+  font-family:"Caveat",cursive;
+  font-weight:700;
+  color:var(--ink);
+  cursor:pointer;
+  letter-spacing:0.02em;
+}
+.btn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:2.5px solid var(--ink);
+  border-radius:14px 8px 18px 10px / 10px 18px 8px 14px;
+  filter:url(#wobble);
+  transition:transform 120ms ease;
+  pointer-events:none;
+}
+.btn:hover{ transform:translate(1px,-1px) rotate(-0.4deg) }
+.btn:hover::before{ border-color:var(--red) }
+.btn.primary{ color:var(--red) }
+.btn.primary::before{ border-color:var(--red); border-width:3px }
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn:disabled:hover{transform:none}
+
+.foot{
+  text-align:center;
+  margin-top:36px;
+  font-family:"Caveat",cursive;
+  color:var(--pencil);
+  font-size:18px;
+  transform:rotate(-1deg);
+}
+.foot::before, .foot::after{ content:" ✦ "; color:var(--red); }
+
+/* arrow doodle on next button */
+.arrow{display:inline-block;margin-left:6px;transform:translateY(2px)}
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" aria-hidden="true">
+  <filter id="wobble">
+    <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="3" result="t"/>
+    <feDisplacementMap in="SourceGraphic" in2="t" scale="2.4"/>
+  </filter>
+  <filter id="wobble2">
+    <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="7" result="t"/>
+    <feDisplacementMap in="SourceGraphic" in2="t" scale="1.6"/>
+  </filter>
+</svg>
+
+<div class="wrap">
+  <header class="head">
+    <h1>题库 · <span class="doodle">手绘本</span></h1>
+    <div class="meta">模式① · 顺序循环</div>
+  </header>
+
+  <main id="content"></main>
+
+  <p class="foot">Sketch · Mode I · 一题接一题地翻</p>
+</div>
+
+<script>
+"use strict";
+const DATA = /*__DATA_PLACEHOLDER__*/;
+const QUESTIONS = DATA.questions;
+const CHAPTERS = DATA.chapters;
+
+// Build flat ordered list grouped by chapter, in source order
+const FLAT = [];
+CHAPTERS.forEach(ch => {
+  QUESTIONS.filter(q => q.chapter === ch).forEach(q => FLAT.push(q));
+});
+QUESTIONS.forEach(q => { if (!FLAT.includes(q)) FLAT.push(q); });
+
+let idx = 0;
+const content = document.getElementById("content");
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+function arraysEqualUnordered(a,b){
+  if(a.length!==b.length) return false;
+  return a.slice().sort().join("")===b.slice().sort().join("");
+}
+
+function render(){
+  const q = FLAT[idx];
+  const isMulti = q.type === "multi";
+  const letters = ["A","B","C","D"];
+
+  content.innerHTML = `
+    <section class="sketch-box">
+      <span class="q-tag">${isMulti ? "多选 ✦" : "单选 ✓"}</span>
+      <div class="q-meta">
+        <span>${escapeHtml(q.chapter)}</span>
+        <span>第 ${idx+1} 题 / 共 ${FLAT.length} 题</span>
+      </div>
+      <p class="q-text">${escapeHtml(q.question)}</p>
+      <div class="opts">
+        ${letters.map(L => `
+          <button class="opt" data-letter="${L}">
+            <span class="letter">${L}</span>
+            <span class="opt-text">${escapeHtml(q.options[L])}</span>
+          </button>
+        `).join("")}
+      </div>
+      <div class="feedback" id="fb"></div>
+      <div class="actions">
+        <button class="btn" id="btnPrev" ${idx===0?"disabled":""}>← 上一题</button>
+        ${isMulti ? `<button class="btn primary" id="btnSubmit">提 交</button>` : ""}
+        <button class="btn primary" id="btnNext" style="display:none">下一题 <span class="arrow">→</span></button>
+      </div>
+    </section>
+  `;
+
+  const opts = content.querySelectorAll(".opt");
+  const fb = content.querySelector("#fb");
+  const btnSubmit = content.querySelector("#btnSubmit");
+  const btnNext = content.querySelector("#btnNext");
+  const btnPrev = content.querySelector("#btnPrev");
+  const selected = new Set();
+  let locked = false;
+
+  function pick(L){
+    if(locked) return;
+    if(isMulti){
+      if(selected.has(L)) selected.delete(L); else selected.add(L);
+    } else {
+      selected.clear(); selected.add(L);
+    }
+    opts.forEach(el => {
+      el.classList.toggle("selected", selected.has(el.dataset.letter));
+    });
+    if(!isMulti) judge();
+  }
+
+  function judge(){
+    if(locked || selected.size===0) return;
+    locked = true;
+    const userArr = Array.from(selected);
+    const correctArr = q.answer.split("");
+    const ok = arraysEqualUnordered(userArr, correctArr);
+
+    opts.forEach(el => {
+      el.classList.add("locked");
+      const L = el.dataset.letter;
+      el.classList.remove("selected");
+      if(correctArr.includes(L)) el.classList.add("correct");
+      else if(userArr.includes(L)) el.classList.add("wrong");
+    });
+
+    fb.classList.add("show", ok ? "ok" : "no");
+    fb.className = "feedback show " + (ok ? "ok" : "no");
+    const detail = correctArr.map(L => `${L}. ${escapeHtml(q.options[L])}`).join("　／　");
+    fb.innerHTML = `
+      <span class="stamp">${ok ? "✓ Right!" : "✗ Wrong"}</span>
+      ${ok ? "答得不错～" : "再瞧瞧～"}
+      <div class="ans">正确答案 ➜ <b>${q.answer}</b><br>${detail}</div>
+    `;
+
+    if(btnSubmit) btnSubmit.style.display = "none";
+    btnNext.style.display = "inline-block";
+    btnNext.focus();
+  }
+
+  opts.forEach(el => el.addEventListener("click", () => pick(el.dataset.letter)));
+  if(btnSubmit) btnSubmit.addEventListener("click", judge);
+  btnNext.addEventListener("click", () => { idx = (idx+1) % FLAT.length; render(); window.scrollTo({top:0, behavior:"smooth"}); });
+  btnPrev.addEventListener("click", () => { idx = (idx-1+FLAT.length) % FLAT.length; render(); window.scrollTo({top:0, behavior:"smooth"}); });
+}
+
+render();
+
+// Keyboard
+document.addEventListener("keydown", (e) => {
+  const k = e.key.toUpperCase();
+  if("ABCD".includes(k)){
+    const el = document.querySelector(`.opt[data-letter="${k}"]`);
+    if(el) el.click();
+  } else if(e.key === "Enter"){
+    const n = document.getElementById("btnNext");
+    if(n && n.style.display !== "none"){ n.click(); return; }
+    const s = document.getElementById("btnSubmit");
+    if(s) s.click();
+  } else if(e.key === "ArrowRight"){
+    const n = document.getElementById("btnNext");
+    if(n && n.style.display !== "none") n.click();
+  } else if(e.key === "ArrowLeft"){
+    const p = document.getElementById("btnPrev");
+    if(p && !p.disabled) p.click();
+  }
+});
+</script>
+</body>
+</html>

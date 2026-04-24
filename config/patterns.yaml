@@ -1,0 +1,124 @@
+# quiz-gen pattern config
+# All regexes are Python (re module). Use raw strings semantics.
+# Users can override any block by placing a file at one of:
+#   ./.quiz-gen/patterns.yaml         (project local)
+#   ~/.quiz-gen/patterns.yaml         (user global)
+# The skill loader merges user values over these defaults.
+
+# ---------------------------------------------------------------------
+# Heading / chapter detection
+# ---------------------------------------------------------------------
+chapter:
+  # If a paragraph matches ANY of these, it is treated as Heading 1
+  text_patterns:
+    - '^第[一二三四五六七八九十百零０-９0-9]+章\s'
+    - '^第[一二三四五六七八九十百零０-９0-9]+部分\s'
+    - '^第[一二三四五六七八九十百零０-９0-9]+单元\s'
+    - '^Chapter\s+\d+'
+    - '^Part\s+[IVX0-9]+'
+    - '^Unit\s+\d+'
+    - '^导论$'
+    - '^前言$'
+    - '^Introduction$'
+    - '^绪论$'
+  # In .md/.txt, lines starting with `# ` are also chapters
+
+section:
+  # If a paragraph matches ANY of these, switch question-type context.
+  single_patterns:
+    - '单选题'
+    - '单选'
+    - 'Single[\s\-]*Choice'
+    - 'Single Answer'
+  multi_patterns:
+    - '多选题'
+    - '多选'
+    - 'Multi[\s\-]*Choice'
+    - 'Multiple[\s\-]*Choice'
+  tf_patterns:
+    - '判断题'
+    - '是非题'
+    - 'True[\s/\-]*False'
+    - 'T/F'
+  fill_patterns:
+    - '填空题'
+    - 'Fill[\s\-]*in[\s\-]*the[\s\-]*Blank'
+    - 'Fill in'
+  short_patterns:
+    - '简答题'
+    - '主观题'
+    - 'Short[\s\-]*Answer'
+
+# ---------------------------------------------------------------------
+# Question number prefix (stripped before storing the question text)
+# ---------------------------------------------------------------------
+question_number:
+  # Matched at start of line — group 1 is the number, dropped along with sep
+  patterns:
+    - '^\s*(\d+)\s*[\.\．、）)\s]+'
+    - '^\s*[（(](\d+)[）)]\s*'
+    - '^\s*([①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])\s*'
+    - '^\s*Q(\d+)[\:\.\s]+'
+
+# ---------------------------------------------------------------------
+# Option markers (A/B/C/D/E/F and Chinese variants)
+# ---------------------------------------------------------------------
+options:
+  letters: ['A', 'B', 'C', 'D', 'E', 'F']
+  # Aliases: each list maps to the canonical letter
+  aliases:
+    A: ['A', 'a', 'Ａ', 'ａ', '①', '一', '甲', '(1)', '（1）', '1']
+    B: ['B', 'b', 'Ｂ', 'ｂ', '②', '二', '乙', '(2)', '（2）', '2']
+    C: ['C', 'c', 'Ｃ', 'ｃ', '③', '三', '丙', '(3)', '（3）', '3']
+    D: ['D', 'd', 'Ｄ', 'ｄ', '④', '四', '丁', '(4)', '（4）', '4']
+    E: ['E', 'e', 'Ｅ', 'ｅ', '⑤', '五', '戊', '(5)', '（5）', '5']
+    F: ['F', 'f', 'Ｆ', 'ｆ', '⑥', '六', '己', '(6)', '（6）', '6']
+  # Allowed separators between marker and content
+  separators: ['.', '．', '、', ':', '：', ' ', '　', ')', '）', ']', '】']
+
+# ---------------------------------------------------------------------
+# Answer-line detection
+# Capture group 1 = the answer letters / value
+# ---------------------------------------------------------------------
+answer:
+  patterns:
+    - '^\s*答案[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*正确答案[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*参考答案[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*答\s*[:：]\s*(.+?)\s*$'
+    - '^\s*Answer[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*Ans[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*Correct\s+Answer[\s:：\.\-]+(.+?)\s*$'
+    - '^[\[【]\s*答案\s*[\]】][\s:：\.\-]*(.+?)\s*$'
+
+# ---------------------------------------------------------------------
+# Explanation-line detection
+# Capture group 1 = explanation text
+# ---------------------------------------------------------------------
+explanation:
+  patterns:
+    - '^\s*解析[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*答案解析[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*详解[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*考点[\s:：\.\-]+(.+?)\s*$'
+    - '^\s*Explanation[\s:：\.\-]+(.+?)\s*$'
+    - '^[\[【]\s*解析\s*[\]】][\s:：\.\-]*(.+?)\s*$'
+
+# ---------------------------------------------------------------------
+# True/False answer normalization
+# Each list maps to the canonical answer letter (A=true, B=false)
+# ---------------------------------------------------------------------
+tf_answers:
+  A: ['A', '对', '正确', '是', 'T', 'True', 'Y', 'Yes', '√', '✓', '1']
+  B: ['B', '错', '错误', '否', 'F', 'False', 'N', 'No', '×', '✗', '0']
+
+# ---------------------------------------------------------------------
+# Strings to ignore (publisher attribution lines etc.)
+# ---------------------------------------------------------------------
+ignore:
+  prefixes:
+    - '（出题人'
+    - '(出题人'
+    - '【出题人'
+    - '出题人：'
+    - 'Author:'

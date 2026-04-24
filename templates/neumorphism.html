@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#E0E5EC">
+<title>题库练习 · Soft UI</title>
+<!--__PWA_LINKS__-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Neumorphism / Soft UI Design tokens
+============================================================ */
+:root {
+  --base: #E0E5EC;
+  --base-dark: #C8CDD6;
+  --base-light: #F8FAFF;
+  --shadow-light: rgba(255,255,255,0.88);
+  --shadow-dark: rgba(163,177,198,0.72);
+  --neu-raised: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
+  --neu-raised-sm: 3px 3px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
+  --neu-raised-lg: 10px 10px 24px var(--shadow-dark), -10px -10px 24px var(--shadow-light);
+  --neu-inset: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light);
+  --neu-inset-sm: inset 2px 2px 6px var(--shadow-dark), inset -2px -2px 6px var(--shadow-light);
+  --neu-flat: 0 0 0 transparent;
+
+  --text: #4A5568;
+  --text-strong: #2D3748;
+  --text-soft: #8899AA;
+  --accent: #6C8EBF;
+  --accent-light: rgba(108,142,191,0.18);
+  --accent-dark: #4A6FA5;
+  --success: #48BB78;
+  --success-light: rgba(72,187,120,0.16);
+  --danger: #F56565;
+  --danger-light: rgba(245,101,101,0.16);
+  --warning: #ED8936;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 50px;
+
+  --transition: 200ms cubic-bezier(.4,0,.2,1);
+  --transition-slow: 350ms cubic-bezier(.4,0,.2,1);
+}
+
+[data-theme="dark"] {
+  --base: #1E2128;
+  --base-dark: #161A20;
+  --base-light: #262B35;
+  --shadow-light: rgba(50,58,70,0.7);
+  --shadow-dark: rgba(8,10,14,0.8);
+  --neu-raised: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
+  --neu-raised-sm: 3px 3px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
+  --neu-raised-lg: 10px 10px 24px var(--shadow-dark), -10px -10px 24px var(--shadow-light);
+  --neu-inset: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light);
+  --neu-inset-sm: inset 2px 2px 6px var(--shadow-dark), inset -2px -2px 6px var(--shadow-light);
+
+  --text: #A0AEC0;
+  --text-strong: #E2E8F0;
+  --text-soft: #4A5568;
+  --accent: #7EB2E4;
+  --accent-light: rgba(126,178,228,0.16);
+  --accent-dark: #5A9BD4;
+  --success: #68D391;
+  --success-light: rgba(104,211,145,0.14);
+  --danger: #FC8181;
+  --danger-light: rgba(252,129,129,0.14);
+}
+
+/* ============================================================
+   Base
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--base);
+  color: var(--text);
+  font-family: "Nunito", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body { min-height: 100vh; }
+button { font-family: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.hidden { display: none !important; }
+textarea, input { font-family: inherit; }
+
+/* ============================================================
+   Layout
+============================================================ */
+.app-shell {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   Topbar
+============================================================ */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  background: var(--base);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--neu-raised);
+}
+.topbar .brand {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-strong);
+  letter-spacing: -0.3px;
+}
+.brand-orb {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--base);
+  box-shadow: var(--neu-raised-sm);
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-orb::after {
+  content: "";
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  box-shadow: inset 2px 2px 4px rgba(255,255,255,0.3);
+}
+.topbar .spacer { flex: 1; }
+.crumb {
+  font-size: 13px;
+  color: var(--text-soft);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.icon-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--base);
+  border: none;
+  color: var(--text);
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: var(--neu-raised-sm);
+  transition: box-shadow var(--transition), color var(--transition);
+}
+.icon-btn:hover { color: var(--accent); }
+.icon-btn:active { box-shadow: var(--neu-inset-sm); }
+.icon-btn svg { width: 20px; height: 20px; }
+
+.content { flex: 1; }
+
+/* ============================================================
+   Soft panels
+============================================================ */
+.neu-card {
+  background: var(--base);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--neu-raised);
+  padding: 28px;
+}
+.neu-card.sm { padding: 18px 20px; }
+.neu-inset-panel {
+  background: var(--base);
+  border-radius: var(--radius-md);
+  box-shadow: var(--neu-inset);
+  padding: 16px;
+}
+
+/* ============================================================
+   Home
+============================================================ */
+.hero {
+  text-align: center;
+  padding: 36px 20px 28px;
+  margin-bottom: 28px;
+}
+.hero h1 {
+  font-size: clamp(26px, 5vw, 40px);
+  font-weight: 800;
+  color: var(--text-strong);
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+}
+.hero h1 .accent { color: var(--accent); }
+.hero p { color: var(--text-soft); font-size: 15px; margin: 0; }
+
+.stat-row {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+  margin: 0 0 32px;
+}
+.stat-pill {
+  background: var(--base);
+  border-radius: var(--radius-full);
+  box-shadow: var(--neu-raised-sm);
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.stat-pill .num { color: var(--accent); font-weight: 800; font-size: 15px; }
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.mode-card {
+  background: var(--base);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--neu-raised);
+  padding: 26px;
+  border: none;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  transition: box-shadow var(--transition-slow), transform var(--transition-slow);
+  position: relative;
+  overflow: hidden;
+}
+.mode-card:hover {
+  box-shadow: var(--neu-raised-lg);
+  transform: translateY(-2px);
+}
+.mode-card:active {
+  box-shadow: var(--neu-inset);
+  transform: translateY(0);
+}
+.mode-card .num-badge {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--base);
+  box-shadow: var(--neu-raised-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 18px;
+}
+.mode-card h3 { font-size: 18px; font-weight: 700; color: var(--text-strong); margin: 0 0 8px; }
+.mode-card p  { font-size: 13.5px; color: var(--text-soft); margin: 0 0 16px; line-height: 1.65; }
+.mode-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.mode-tag {
+  background: var(--base);
+  border-radius: var(--radius-full);
+  box-shadow: var(--neu-inset-sm);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.chapter-details {
+  background: var(--base);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--neu-raised);
+  padding: 18px 22px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.chapter-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--text-strong);
+  font-size: 14px;
+  padding: 4px 0;
+  list-style: none;
+}
+.chapter-details summary::-webkit-details-marker { display: none; }
+.chapter-details ol { margin: 14px 0 4px; padding-left: 22px; }
+.chapter-details li { margin: 4px 0; }
+
+/* ============================================================
+   Quiz layout
+============================================================ */
+.quiz-layout {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .quiz-layout { grid-template-columns: 1fr; }
+  .quiz-side { order: -1; }
+}
+
+/* Question card */
+.q-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 18px; flex-wrap: wrap;
+}
+.q-type-badge {
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  background: var(--base);
+  box-shadow: var(--neu-inset-sm);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+}
+.q-chapter { font-size: 12.5px; color: var(--text-soft); flex: 1; font-weight: 600; }
+.q-id { font-size: 12px; color: var(--text-soft); }
+
+.q-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.75;
+  margin: 0 0 22px;
+  word-break: break-word;
+}
+
+/* Options */
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--base);
+  box-shadow: var(--neu-raised-sm);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.55;
+  word-break: break-word;
+  transition: box-shadow var(--transition), transform var(--transition), color var(--transition);
+}
+.option:hover:not(.disabled) {
+  box-shadow: var(--neu-raised);
+  transform: translateY(-1px);
+  color: var(--accent);
+}
+.option:active:not(.disabled) {
+  box-shadow: var(--neu-inset-sm);
+  transform: translateY(0);
+}
+.option .letter {
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--base);
+  box-shadow: var(--neu-inset-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-soft);
+  transition: all var(--transition);
+}
+.option .opt-text { flex: 1; padding-top: 5px; }
+
+.option.selected {
+  box-shadow: var(--neu-inset);
+  color: var(--accent);
+}
+.option.selected .letter {
+  background: var(--accent);
+  box-shadow: none;
+  color: white;
+}
+.option.correct {
+  box-shadow: inset 4px 4px 10px rgba(72,187,120,0.2), inset -4px -4px 10px rgba(255,255,255,0.5);
+  color: var(--success);
+}
+.option.correct .letter { background: var(--success); box-shadow: none; color: white; }
+.option.wrong {
+  box-shadow: inset 4px 4px 10px rgba(245,101,101,0.2), inset -4px -4px 10px rgba(255,255,255,0.5);
+  color: var(--danger);
+}
+.option.wrong .letter { background: var(--danger); box-shadow: none; color: white; }
+.option.disabled { cursor: default; }
+
+/* Fill / short input */
+.fill-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--base);
+  box-shadow: var(--neu-inset);
+  border: none;
+  color: var(--text-strong);
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 500;
+  outline: none;
+  resize: vertical;
+  transition: box-shadow var(--transition);
+}
+.fill-input:focus {
+  box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light),
+              0 0 0 2px var(--accent);
+}
+
+/* Feedback */
+.feedback {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  display: none;
+  font-weight: 500;
+  transition: all var(--transition-slow);
+}
+.feedback.show {
+  display: block;
+  animation: softReveal 350ms cubic-bezier(.4,0,.2,1);
+}
+@keyframes softReveal {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.feedback.ok {
+  background: var(--base);
+  box-shadow: inset 4px 4px 12px rgba(72,187,120,0.18), inset -4px -4px 12px rgba(255,255,255,0.6);
+  color: var(--success);
+}
+.feedback.no {
+  background: var(--base);
+  box-shadow: inset 4px 4px 12px rgba(245,101,101,0.18), inset -4px -4px 12px rgba(255,255,255,0.6);
+  color: var(--danger);
+}
+.feedback .fb-title { font-weight: 800; font-size: 15px; margin-bottom: 8px; }
+.feedback .fb-detail {
+  font-size: 13.5px;
+  color: var(--text);
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--base);
+  box-shadow: var(--neu-inset-sm);
+}
+
+/* Actions */
+.actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.kb-hint {
+  flex: 1;
+  font-size: 11.5px;
+  color: var(--text-soft);
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+}
+.kb-hint kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--base);
+  box-shadow: var(--neu-raised-sm);
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+/* Buttons */
+.btn {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: var(--radius-full);
+  background: var(--base);
+  box-shadow: var(--neu-raised-sm);
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  transition: box-shadow var(--transition), transform var(--transition), color var(--transition);
+}
+.btn:hover { color: var(--accent); box-shadow: var(--neu-raised); }
+.btn:active { box-shadow: var(--neu-inset-sm); transform: scale(0.98); }
+.btn.primary {
+  background: var(--accent);
+  box-shadow: 4px 4px 10px rgba(108,142,191,0.45), -2px -2px 8px rgba(255,255,255,0.5);
+  color: white;
+}
+.btn.primary:hover {
+  box-shadow: 6px 6px 14px rgba(108,142,191,0.55), -3px -3px 10px rgba(255,255,255,0.5);
+  background: var(--accent-dark);
+}
+.btn.primary:active {
+  box-shadow: inset 3px 3px 8px rgba(0,0,0,0.2), inset -2px -2px 6px rgba(255,255,255,0.2);
+}
+.btn:disabled { opacity: 0.45; pointer-events: none; }
+.btn.ghost { background: transparent; box-shadow: none; color: var(--text-soft); }
+.btn.ghost:hover { color: var(--accent); box-shadow: none; }
+
+/* Side panel */
+.side-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin: 0 0 14px;
+}
+.side-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 8px 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--base-dark);
+}
+[data-theme="dark"] .side-row { border-bottom-color: var(--base-light); }
+.side-row:last-child { border: none; }
+.side-row .label { color: var(--text-soft); }
+.side-row .val { font-weight: 800; color: var(--text-strong); }
+.side-row .val.ok  { color: var(--success); }
+.side-row .val.err { color: var(--danger); }
+
+/* Progress bar – also neu */
+.neu-progress {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--base);
+  box-shadow: var(--neu-inset-sm);
+  overflow: hidden;
+  margin-top: 16px;
+}
+.neu-progress .track {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  box-shadow: 2px 0 8px rgba(108,142,191,0.4);
+  transition: width 400ms cubic-bezier(.4,0,.2,1);
+}
+
+/* Notes */
+.notes-area {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--base);
+  box-shadow: var(--neu-inset);
+  animation: softReveal 250ms ease;
+}
+.notes-area textarea {
+  width: 100%;
+  min-height: 72px;
+  background: transparent;
+  border: none;
+  color: var(--text-strong);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  resize: vertical;
+  outline: none;
+}
+
+/* ============================================================
+   Result page
+============================================================ */
+.result-wrap { max-width: 580px; margin: 0 auto; }
+.score-orb {
+  --size: 180px;
+  width: var(--size); height: var(--size);
+  border-radius: 50%;
+  background: var(--base);
+  box-shadow: var(--neu-raised-lg);
+  margin: 0 auto 28px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+}
+/* conic inset ring */
+.score-orb::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) var(--pct, 0%), var(--base-dark) 0%);
+  box-shadow: var(--neu-inset-sm);
+}
+.score-orb::after {
+  content: "";
+  position: absolute;
+  inset: 28px;
+  border-radius: 50%;
+  background: var(--base);
+  box-shadow: var(--neu-raised-sm);
+}
+.score-num {
+  position: relative;
+  z-index: 1;
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+.score-label {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-soft);
+  margin-top: 4px;
+}
+
+.result-headline { font-size: 24px; font-weight: 800; color: var(--text-strong); margin: 0 0 6px; text-align: center; }
+.result-sub { font-size: 14px; color: var(--text-soft); text-align: center; margin: 0 0 24px; font-weight: 600; }
+
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.stat-tile {
+  background: var(--base);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--neu-raised-sm);
+  padding: 16px;
+  text-align: center;
+}
+.stat-tile .lab { font-size: 12px; color: var(--text-soft); font-weight: 600; margin-bottom: 8px; }
+.stat-tile .val { font-size: 22px; font-weight: 800; color: var(--accent); }
+
+.wrong-list { margin-top: 24px; text-align: left; }
+.wrong-list h3 { font-size: 14px; font-weight: 700; color: var(--text-soft); margin: 0 0 14px; }
+.wrong-item {
+  background: var(--base);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--neu-raised-sm);
+  border-left: 4px solid var(--danger);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  font-size: 13.5px;
+}
+.wrong-item .wm { font-size: 12px; color: var(--text-soft); font-weight: 600; margin-bottom: 6px; }
+.wrong-item .wq { color: var(--text-strong); font-weight: 600; margin-bottom: 6px; }
+.wrong-item .wa { color: var(--success); font-weight: 700; }
+.wrong-item .wy { color: var(--danger); font-weight: 600; }
+
+/* ============================================================
+   Responsive
+============================================================ */
+@media (max-width: 600px) {
+  .app-shell { padding: 14px 14px 60px; }
+  .neu-card { padding: 18px; }
+  .topbar { padding: 12px 16px; margin-bottom: 20px; }
+  .hero { padding: 20px 12px 18px; }
+  .actions { justify-content: stretch; }
+  .actions .btn { flex: 1; }
+  .q-text { font-size: 15px; }
+  .option { padding: 12px 14px; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-in { animation: slideUp 320ms cubic-bezier(.4,0,.2,1) both; }
+.delay-1 { animation-delay: 60ms; }
+.delay-2 { animation-delay: 120ms; }
+.delay-3 { animation-delay: 180ms; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <header class="topbar" role="banner">
+    <div class="brand">
+      <span class="brand-orb" aria-hidden="true"></span>
+      <span id="brandTitle">题库练习</span>
+    </div>
+    <div class="spacer"></div>
+    <span class="crumb" id="crumb" aria-live="polite"></span>
+    <button class="icon-btn" id="btnHome" title="返回主页" aria-label="返回主页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 21V12h6v9"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="btnTheme" aria-label="切换深色模式">
+      <svg id="iconLight" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg id="iconDark" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main class="content" id="content"></main>
+</div>
+
+<script>
+"use strict";
+const CONFIG = /*__CONFIG_PLACEHOLDER__*/;
+const I18N = /*__I18N_PLACEHOLDER__*/;
+const DATA = /*__DATA_PLACEHOLDER__*/;
+/*__PWA_REGISTER__*/
+
+const QUESTIONS = DATA.questions;
+const CHAPTERS  = DATA.chapters;
+const BY_CHAPTER = {};
+CHAPTERS.forEach(ch => { BY_CHAPTER[ch] = []; });
+QUESTIONS.forEach(q => {
+  if (!BY_CHAPTER[q.chapter]) BY_CHAPTER[q.chapter] = [];
+  BY_CHAPTER[q.chapter].push(q);
+});
+
+const SR_DELAYS = [3, 8, 18, 40, 90, 180];
+
+const LS_KEY = "quiz-neu-v1";
+const ls = {
+  load() { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; } },
+  save(o) { try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch {} }
+};
+let appState = Object.assign({
+  theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+  mode1: { flatIdx: 0, total: 0, correct: 0 },
+  mode2: { state: {}, total: 0, correct: 0, now: 0, qNum: 0 },
+  notes: {}
+}, ls.load());
+function persist() { ls.save(appState); }
+
+function applyTheme() {
+  document.documentElement.setAttribute("data-theme", appState.theme);
+  document.getElementById("iconLight").classList.toggle("hidden", appState.theme === "dark");
+  document.getElementById("iconDark").classList.toggle("hidden", appState.theme !== "dark");
+  document.querySelector("meta[name=theme-color]").setAttribute(
+    "content", appState.theme === "dark" ? "#1E2128" : "#E0E5EC"
+  );
+}
+document.getElementById("btnTheme").addEventListener("click", () => {
+  appState.theme = appState.theme === "dark" ? "light" : "dark";
+  applyTheme(); persist();
+});
+applyTheme();
+
+const content = document.getElementById("content");
+const crumbEl = document.getElementById("crumb");
+let currentMode = null;
+let currentSession = null;
+
+function go(view, extra) {
+  currentMode = view;
+  content.innerHTML = "";
+  crumbEl.textContent = "";
+  if (view === "home")   { renderHome(); return; }
+  if (view === "1")      { crumbEl.textContent = I18N.modes["1_title"]; startMode1(); return; }
+  if (view === "2")      { crumbEl.textContent = I18N.modes["2_title"]; startMode2(); return; }
+  if (view === "3")      { crumbEl.textContent = I18N.modes["3_title"]; startMode3(); return; }
+  if (view === "result") { showResult(extra); return; }
+}
+document.getElementById("btnHome").addEventListener("click", () => {
+  if (currentMode && currentMode !== "home") {
+    if (!confirm(I18N.labels.exit_confirm)) return;
+  }
+  go("home");
+});
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])
+  );
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function arraysEqualUnordered(a, b) {
+  if (a.length !== b.length) return false;
+  return a.slice().sort().join("") === b.slice().sort().join("");
+}
+function normAnswer(s) { return String(s).trim().toLowerCase().replace(/\s+/g," "); }
+function shorten(s, n) { return s.length > n ? s.slice(0,n-1)+"…" : s; }
+function typeLabel(t) { return I18N.labels[t+"_q"] || t; }
+function getLetters(q) { return Object.keys(q.options||{}).filter(k => q.options[k]); }
+
+function renderHome() {
+  const byType = { single:0, multi:0, tf:0, fill:0, short:0 };
+  QUESTIONS.forEach(q => { if (byType[q.type] !== undefined) byType[q.type]++; });
+  const m1acc = appState.mode1.total ? Math.round(appState.mode1.correct/appState.mode1.total*100) : 0;
+  const m2    = appState.mode2;
+  const m2acc = m2.total ? Math.round(m2.correct/m2.total*100) : 0;
+  const avail = (typeof CONFIG !== "undefined" && CONFIG.modes) ? CONFIG.modes : [1,2,3];
+
+  const cards = [
+    { id:"1", num:"①", title:I18N.modes["1_title"], desc:I18N.modes["1_desc"],
+      tags:[I18N.modes["1_meta_no_shuffle"], I18N.modes["1_meta_loop"],
+            appState.mode1.total+" "+I18N.stats.answered, m1acc+"% "+I18N.stats.accuracy] },
+    { id:"2", num:"②", title:I18N.modes["2_title"], desc:I18N.modes["2_desc"],
+      tags:[I18N.modes["2_meta_endless"], m2.total+" "+I18N.stats.answered, m2acc+"% "+I18N.stats.accuracy] },
+    { id:"3", num:"③", title:I18N.modes["3_title"], desc:I18N.modes["3_desc"], tags:[] },
+  ].filter(c => avail.includes(Number(c.id)));
+
+  content.innerHTML = `
+    <div class="hero animate-in">
+      <h1><span class="accent">${escapeHtml(I18N.app_title)}</span></h1>
+      <p>${escapeHtml(I18N.app_subtitle)}</p>
+    </div>
+    <div class="stat-row animate-in delay-1">
+      <span class="stat-pill">${I18N.stats.total} <span class="num">${QUESTIONS.length}</span></span>
+      ${byType.single ? `<span class="stat-pill">${I18N.stats.single} <span class="num">${byType.single}</span></span>` : ""}
+      ${byType.multi  ? `<span class="stat-pill">${I18N.stats.multi} <span class="num">${byType.multi}</span></span>` : ""}
+      ${byType.tf     ? `<span class="stat-pill">${I18N.stats.tf} <span class="num">${byType.tf}</span></span>` : ""}
+      ${byType.fill   ? `<span class="stat-pill">${I18N.stats.fill} <span class="num">${byType.fill}</span></span>` : ""}
+      ${byType.short  ? `<span class="stat-pill">${I18N.stats.short} <span class="num">${byType.short}</span></span>` : ""}
+      <span class="stat-pill">${I18N.stats.chapters} <span class="num">${CHAPTERS.length}</span></span>
+    </div>
+    <div class="mode-grid animate-in delay-2">
+      ${cards.map(c => `
+        <button class="mode-card" data-mode="${c.id}">
+          <div class="num-badge">${c.num}</div>
+          <h3>${escapeHtml(c.title)}</h3>
+          <p>${escapeHtml(c.desc)}</p>
+          <div class="mode-tags">${c.tags.map(t=>`<span class="mode-tag">${escapeHtml(t)}</span>`).join("")}</div>
+        </button>
+      `).join("")}
+    </div>
+    <details class="chapter-details animate-in delay-3">
+      <summary>查看 ${CHAPTERS.length} 个章节</summary>
+      <ol>${CHAPTERS.map(c=>`<li>${escapeHtml(c)} （${BY_CHAPTER[c].length} 题）</li>`).join("")}</ol>
+    </details>
+  `;
+  content.querySelectorAll(".mode-card").forEach(el =>
+    el.addEventListener("click", () => go(el.dataset.mode))
+  );
+}
+
+function renderQuiz(q, opts) {
+  const letters  = getLetters(q);
+  const isMulti  = q.type === "multi";
+  const isFill   = q.type === "fill";
+  const isShort  = q.type === "short";
+  const isChoice = ["single","multi","tf"].includes(q.type);
+  const noteKey  = String(q.id);
+  const hasNotes = typeof CONFIG !== "undefined" ? CONFIG.features?.notes !== false : true;
+
+  let optHtml = "";
+  if (isChoice) {
+    optHtml = `<div class="options" role="${isMulti?'group':'radiogroup'}">
+      ${letters.map(L=>`
+        <button class="option" data-letter="${L}" role="${isMulti?'checkbox':'radio'}" aria-checked="false">
+          <span class="letter">${L}</span>
+          <span class="opt-text">${escapeHtml(q.options[L])}</span>
+        </button>
+      `).join("")}
+    </div>`;
+  } else {
+    optHtml = `<textarea class="fill-input" id="fillInput" rows="${isShort?4:2}"
+      placeholder="${escapeHtml(isFill ? I18N.labels.fill_placeholder : I18N.labels.short_placeholder)}"
+      aria-label="${escapeHtml(typeLabel(q.type))}"></textarea>`;
+  }
+
+  const layout = document.createElement("div");
+  layout.className = "quiz-layout";
+  layout.innerHTML = `
+    <section class="neu-card animate-in" role="region" aria-label="题目">
+      <div class="q-header">
+        <span class="q-type-badge">${typeLabel(q.type)}</span>
+        <span class="q-chapter">${escapeHtml(shorten(q.chapter,18))}</span>
+        <span class="q-id">#${q.id}</span>
+      </div>
+      <p class="q-text">${escapeHtml(q.question)}</p>
+      ${optHtml}
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      ${hasNotes ? `<div class="notes-area hidden" id="notesArea">
+        <textarea id="noteTa" placeholder="记录笔记…">${escapeHtml(appState.notes[noteKey]||"")}</textarea>
+      </div>` : ""}
+      <div class="actions">
+        <div class="kb-hint" aria-hidden="true">
+          ${isChoice?`<kbd>A</kbd>–<kbd>${letters[letters.length-1]}</kbd> · `:""}
+          <kbd>Enter</kbd> · <kbd>←</kbd><kbd>→</kbd>
+        </div>
+        ${opts.onPrev ? `<button class="btn ghost" id="btnPrev">${I18N.actions.prev}</button>` : ""}
+        ${hasNotes ? `<button class="btn ghost" id="btnNote">${I18N.actions.show_note}</button>` : ""}
+        ${(isMulti||isFill||isShort) ? `<button class="btn" id="btnSubmit">${I18N.actions.submit}</button>` : ""}
+        <button class="btn primary hidden" id="btnNext">${I18N.actions.next} →</button>
+      </div>
+    </section>
+    <aside class="quiz-side animate-in delay-1">
+      <div class="neu-card sm">
+        <h4 class="side-title">${I18N.stats.answered}</h4>
+        ${opts.sideStats.map(s=>`
+          <div class="side-row">
+            <span class="label">${escapeHtml(s.label)}</span>
+            <span class="val ${s.cls||""}">${escapeHtml(String(s.val))}</span>
+          </div>
+        `).join("")}
+        ${opts.progressPct!=null ? `<div class="neu-progress" aria-label="进度"><div class="track" style="width:${opts.progressPct.toFixed(1)}%"></div></div>` : ""}
+      </div>
+    </aside>
+  `;
+
+  content.innerHTML = "";
+  content.appendChild(layout);
+  window.scrollTo({top:0, behavior:"smooth"});
+
+  const optionEls = layout.querySelectorAll(".option");
+  const feedbackEl = layout.querySelector("#feedback");
+  const btnSubmit  = layout.querySelector("#btnSubmit");
+  const btnNext    = layout.querySelector("#btnNext");
+  const btnPrev    = layout.querySelector("#btnPrev");
+  const btnNote    = layout.querySelector("#btnNote");
+  const notesArea  = layout.querySelector("#notesArea");
+  const noteTa     = layout.querySelector("#noteTa");
+  const fillInput  = layout.querySelector("#fillInput");
+  const selected   = new Set();
+  let submitted    = false;
+
+  if (btnNote && notesArea) {
+    btnNote.addEventListener("click", () => {
+      const hidden = notesArea.classList.toggle("hidden");
+      btnNote.textContent = hidden ? I18N.actions.show_note : I18N.actions.hide_note;
+      if (!hidden && noteTa) noteTa.focus();
+    });
+    if (noteTa) noteTa.addEventListener("input", () => {
+      appState.notes[noteKey] = noteTa.value; persist();
+    });
+  }
+
+  function revealFeedback(ok, correctArr) {
+    if (opts.hideFeedback) return;
+    feedbackEl.classList.add("show", ok ? "ok" : "no");
+    let detail = "";
+    if (isChoice && correctArr.length) {
+      detail = correctArr.map(L => `<div><strong>${L}</strong> — ${escapeHtml(q.options[L])}</div>`).join("");
+    } else if (isFill) {
+      detail = `${I18N.labels.correct_answer}：${escapeHtml((q.answer||[]).join(" / "))}`;
+    } else {
+      detail = `${I18N.labels.correct_answer}：${escapeHtml((q.answer||[]).join("；"))}`;
+    }
+    feedbackEl.innerHTML = `
+      <div class="fb-title">${ok ? "✓ "+I18N.labels.correct : "✗ "+I18N.labels.wrong}</div>
+      <div class="fb-detail">${detail}</div>
+      ${q.explanation ? `<div style="margin-top:8px;font-size:13px;opacity:.75">${I18N.labels.explanation}：${escapeHtml(q.explanation)}</div>` : ""}
+    `;
+  }
+
+  function submit() {
+    if (submitted) return;
+    let ok = false, userArr = [], correctArr = [];
+    if (isChoice) {
+      if (!selected.size) return;
+      userArr    = Array.from(selected);
+      correctArr = String(q.answer).split("");
+      ok         = arraysEqualUnordered(userArr, correctArr);
+      optionEls.forEach(el => {
+        el.classList.add("disabled");
+        const L = el.dataset.letter;
+        el.classList.remove("selected");
+        if (opts.hideFeedback) { if (userArr.includes(L)) el.classList.add("selected"); }
+        else {
+          if (correctArr.includes(L))   el.classList.add("correct");
+          else if (userArr.includes(L)) el.classList.add("wrong");
+        }
+      });
+    } else if (isFill) {
+      const v = (fillInput?.value||"").trim();
+      if (!v) return;
+      userArr = [v];
+      const acc = Array.isArray(q.answer) ? q.answer : [q.answer];
+      ok = acc.some(a => normAnswer(a) === normAnswer(v));
+      if (fillInput) { fillInput.disabled = true; fillInput.style.boxShadow = ok ? "inset 3px 3px 8px rgba(72,187,120,.25), inset -3px -3px 8px rgba(255,255,255,.5)" : "inset 3px 3px 8px rgba(245,101,101,.25), inset -3px -3px 8px rgba(255,255,255,.5)"; }
+    } else {
+      if (fillInput) fillInput.disabled = true;
+    }
+    submitted = true;
+    revealFeedback(ok, correctArr);
+    if (btnSubmit) btnSubmit.classList.add("hidden");
+    btnNext?.classList.remove("hidden");
+    btnNext?.focus();
+    opts.onAnswer({ correct: ok, user: userArr });
+  }
+
+  optionEls.forEach(el => {
+    el.addEventListener("click", () => {
+      if (submitted) return;
+      if (isMulti) { if (selected.has(el.dataset.letter)) selected.delete(el.dataset.letter); else selected.add(el.dataset.letter); }
+      else { selected.clear(); selected.add(el.dataset.letter); }
+      optionEls.forEach(e => { const s = selected.has(e.dataset.letter); e.classList.toggle("selected",s); e.setAttribute("aria-checked",String(s)); });
+      if (!isMulti) submit();
+    });
+  });
+  if (btnSubmit) btnSubmit.addEventListener("click", submit);
+  if (btnNext)   btnNext.addEventListener("click", () => opts.onNext());
+  if (btnPrev && opts.onPrev) btnPrev.addEventListener("click", opts.onPrev);
+}
+
+function startMode1() {
+  const flat = [];
+  CHAPTERS.forEach(c => BY_CHAPTER[c].forEach(q => flat.push(q)));
+  if (!flat.length) { go("home"); return; }
+  let idx = appState.mode1.flatIdx || 0;
+  if (idx >= flat.length) idx = 0;
+  currentSession = { flat, idx, sessionTotal:0, sessionCorrect:0 };
+  showMode1();
+}
+function showMode1() {
+  const sess = currentSession;
+  const q    = sess.flat[sess.idx];
+  const ch   = q.chapter;
+  const chT  = BY_CHAPTER[ch].length;
+  const chI  = BY_CHAPTER[ch].indexOf(q)+1;
+  const tAcc = appState.mode1.total ? Math.round(appState.mode1.correct/appState.mode1.total*100) : 0;
+  const sAcc = sess.sessionTotal ? Math.round(sess.sessionCorrect/sess.sessionTotal*100) : 0;
+  renderQuiz(q, {
+    sideStats:[
+      {label:I18N.stats.current_chapter, val:shorten(ch,12)},
+      {label:I18N.stats.ch_progress,     val:`${chI}/${chT}`},
+      {label:I18N.stats.lib_progress,    val:`${sess.idx+1}/${sess.flat.length}`},
+      {label:I18N.stats.session_acc,     val:`${sAcc}%`, cls:sess.sessionTotal&&sAcc<60?"err":"ok"},
+      {label:I18N.stats.total_acc,       val:`${tAcc}%`},
+    ],
+    progressPct:((sess.idx+1)/sess.flat.length)*100,
+    onAnswer({correct}){ sess.sessionTotal++; if(correct)sess.sessionCorrect++; appState.mode1.total++; if(correct)appState.mode1.correct++; persist(); },
+    onNext(){ sess.idx=(sess.idx+1)%sess.flat.length; appState.mode1.flatIdx=sess.idx; persist(); showMode1(); },
+    onPrev:sess.idx>0?()=>{ sess.idx=(sess.idx-1+sess.flat.length)%sess.flat.length; appState.mode1.flatIdx=sess.idx; persist(); showMode1(); }:null
+  });
+}
+
+function startMode2() {
+  const m2 = appState.mode2;
+  QUESTIONS.forEach(q => { if(!m2.state[q.id]) m2.state[q.id]={level:0,due:0}; });
+  currentSession = {sessionTotal:0,sessionCorrect:0};
+  showMode2();
+}
+function pickMode2() {
+  const m2 = appState.mode2, now = m2.now;
+  let due = QUESTIONS.filter(q=>(m2.state[q.id]?.due??0)<=now);
+  if (!due.length) {
+    const nd = Math.min(...QUESTIONS.map(q=>m2.state[q.id]?.due??0));
+    m2.now = nd;
+    due = QUESTIONS.filter(q=>(m2.state[q.id]?.due??0)<=m2.now);
+  }
+  due.sort((a,b)=>{ const la=m2.state[a.id].level,lb=m2.state[b.id].level; return la!==lb?la-lb:Math.random()-.5; });
+  const sl = due.slice(0,Math.max(1,Math.ceil(due.length/3)));
+  return sl[Math.floor(Math.random()*sl.length)];
+}
+function showMode2() {
+  const m2=appState.mode2, sess=currentSession, q=pickMode2();
+  m2.qNum++;
+  const sAcc=sess.sessionTotal?Math.round(sess.sessionCorrect/sess.sessionTotal*100):0;
+  const tAcc=m2.total?Math.round(m2.correct/m2.total*100):0;
+  const levels=new Array(SR_DELAYS.length+1).fill(0);
+  QUESTIONS.forEach(qq=>levels[m2.state[qq.id]?.level||0]++);
+  const mastered=QUESTIONS.length-levels[0];
+  renderQuiz(q,{
+    sideStats:[
+      {label:I18N.stats.answered,    val:sess.sessionTotal},
+      {label:I18N.stats.session_acc, val:`${sAcc}%`, cls:sess.sessionTotal&&sAcc<60?"err":"ok"},
+      {label:"累计已答",               val:m2.total},
+      {label:I18N.stats.total_acc,   val:`${tAcc}%`},
+      {label:I18N.stats.mastered,    val:`${mastered}/${QUESTIONS.length}`},
+    ],
+    progressPct:(mastered/QUESTIONS.length)*100,
+    onAnswer({correct}){ sess.sessionTotal++; m2.total++; if(correct){sess.sessionCorrect++;m2.correct++;} const st=m2.state[q.id]; st.level=correct?Math.min((st.level||0)+1,SR_DELAYS.length-1):0; const base=SR_DELAYS[st.level]; st.due=m2.now+base+Math.floor(Math.random()*Math.max(2,Math.floor(base/4))); m2.now++; persist(); },
+    onNext(){ showMode2(); }
+  });
+}
+
+function startMode3() {
+  const cfg=(typeof CONFIG!=="undefined"&&CONFIG.test_config)||{};
+  const scoring=(typeof CONFIG!=="undefined"&&CONFIG.scoring)||{single:5,multi:3,tf:2,fill:4,short:6};
+  const wants={single:cfg.single??20,multi:cfg.multi??10,tf:cfg.tf??0,fill:cfg.fill??0,short:cfg.short??0};
+  const pool={};
+  ["single","multi","tf","fill","short"].forEach(t=>{ pool[t]=shuffle(QUESTIONS.filter(q=>q.type===t)); });
+  if ((wants.single&&pool.single.length<wants.single)||(wants.multi&&pool.multi.length<wants.multi)) {
+    alert(I18N.labels.no_questions); go("home"); return;
+  }
+  const set=[...pool.single.slice(0,wants.single),...pool.multi.slice(0,wants.multi),...pool.tf.slice(0,wants.tf),...pool.fill.slice(0,wants.fill),...pool.short.slice(0,wants.short)];
+  currentSession={set,idx:0,answers:new Array(set.length).fill(null),scoring};
+  showMode3();
+}
+function showMode3() {
+  const sess=currentSession;
+  if (sess.idx>=sess.set.length) { go("result",sess); return; }
+  const q=sess.set[sess.idx];
+  renderQuiz(q,{
+    hideFeedback:true,
+    sideStats:[
+      {label:"题型",val:typeLabel(q.type)},
+      {label:"进度",val:`${sess.idx+1}/${sess.set.length}`},
+      {label:"已作答",val:sess.answers.filter(x=>x!==null).length},
+    ],
+    progressPct:((sess.idx+1)/sess.set.length)*100,
+    onAnswer({user,correct}){ sess.answers[sess.idx]={user,correct}; },
+    onNext(){ sess.idx++; showMode3(); }
+  });
+}
+
+function showResult(sess) {
+  const scoring=sess.scoring||{single:5,multi:3,tf:2,fill:4,short:6};
+  let total=0,maxS=0;
+  const typeCounts={},typeOk={};
+  const wrongs=[];
+  sess.set.forEach((q,i)=>{
+    const pts=scoring[q.type]||0; maxS+=pts;
+    typeCounts[q.type]=(typeCounts[q.type]||0)+1;
+    typeOk[q.type]=(typeOk[q.type]||0);
+    const a=sess.answers[i];
+    const ok=a&&a.correct&&q.type!=="short";
+    if(ok){total+=pts;typeOk[q.type]++;}
+    if(!ok&&q.type!=="short") wrongs.push({q,user:a?a.user.join(""):"—"});
+  });
+  if(!maxS)maxS=1;
+  const pct=Math.round(total/maxS*100);
+  const hasWP=typeof CONFIG!=="undefined"?CONFIG.features?.wrong_practice!==false:true;
+
+  content.innerHTML=`
+    <div class="result-wrap animate-in">
+      <div class="score-orb" style="--pct:${pct}%">
+        <div class="score-num">${total}</div>
+        <div class="score-label">/ ${maxS}</div>
+      </div>
+      <h2 class="result-headline">${I18N.labels.test_done}</h2>
+      <p class="result-sub">${I18N.labels.score_total} <strong>${pct}%</strong></p>
+      <div class="result-stats">
+        ${Object.keys(typeCounts).map(t=>`
+          <div class="stat-tile">
+            <div class="lab">${typeLabel(t)}</div>
+            <div class="val">${typeOk[t]||0}/${typeCounts[t]}</div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="actions" style="justify-content:center;margin-bottom:28px">
+        <button class="btn primary" id="btnRetry">${I18N.actions.retry}</button>
+        ${hasWP&&wrongs.length?`<button class="btn" id="btnWrong">${I18N.actions.wrong_practice}</button>`:""}
+        <button class="btn ghost" id="btnHome2">${I18N.actions.back_home}</button>
+      </div>
+      ${!wrongs.length?`<p style="text-align:center;color:var(--success);font-weight:800;font-size:18px">${I18N.labels.all_correct}</p>`:""}
+      ${wrongs.length?`
+        <div class="wrong-list">
+          <h3>${I18N.labels.wrong_review}（${wrongs.length} 题）</h3>
+          ${wrongs.map(w=>`
+            <div class="wrong-item">
+              <div class="wm">${escapeHtml(w.q.chapter)} · ${typeLabel(w.q.type)} · #${w.q.id}</div>
+              <div class="wq">${escapeHtml(w.q.question)}</div>
+              <div class="wy">${I18N.labels.your_answer}：${escapeHtml(w.user||I18N.labels.no_answer)}</div>
+              <div class="wa">${I18N.labels.correct_answer}：${escapeHtml(String(w.q.answer))}</div>
+            </div>
+          `).join("")}
+        </div>
+      `:""}
+    </div>
+  `;
+  document.getElementById("btnRetry")?.addEventListener("click",()=>go("3"));
+  document.getElementById("btnHome2")?.addEventListener("click",()=>go("home"));
+  document.getElementById("btnWrong")?.addEventListener("click",()=>{
+    currentSession={flat:wrongs.map(w=>w.q),idx:0,sessionTotal:0,sessionCorrect:0};
+    currentMode="1wp"; crumbEl.textContent=I18N.actions.wrong_practice;
+    showWrongPractice();
+  });
+}
+function showWrongPractice(){
+  const sess=currentSession;
+  if(sess.idx>=sess.flat.length){go("home");return;}
+  const q=sess.flat[sess.idx];
+  renderQuiz(q,{
+    sideStats:[{label:"错题进度",val:`${sess.idx+1}/${sess.flat.length}`}],
+    progressPct:((sess.idx+1)/sess.flat.length)*100,
+    onAnswer({correct}){sess.sessionTotal++;if(correct)sess.sessionCorrect++;},
+    onNext(){sess.idx++;showWrongPractice();}
+  });
+}
+
+document.addEventListener("keydown", e => {
+  if(!currentMode||currentMode==="home") return;
+  const k=e.key.toUpperCase();
+  if ("ABCDEF".includes(k)&&k.length===1) {
+    const opt=document.querySelector(`.option[data-letter="${k}"]`);
+    if(opt&&!opt.classList.contains("disabled")) opt.click();
+  } else if (e.key==="Enter") {
+    const nx=document.getElementById("btnNext");
+    if(nx&&!nx.classList.contains("hidden")){nx.click();return;}
+    document.getElementById("btnSubmit")?.click();
+  } else if (e.key==="ArrowRight") {
+    const nx=document.getElementById("btnNext");
+    if(nx&&!nx.classList.contains("hidden")) nx.click();
+  } else if (e.key==="ArrowLeft") {
+    document.getElementById("btnPrev")?.click();
+  }
+});
+
+go("home");
+</script>
+<!--__PWA_REGISTER__-->
+</body>
+</html>

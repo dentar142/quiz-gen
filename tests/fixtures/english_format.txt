@@ -1,0 +1,23 @@
+# Chapter 1
+
+## Single Choice
+
+1. The capital of France is (  )?
+A. London   B. Paris   C. Berlin   D. Madrid
+Answer: B
+
+2. How many sides does a triangle have?
+A. 2   B. 3   C. 4   D. 5
+Correct Answer: B
+
+3. Which planet is closest to the Sun?
+A. Earth   B. Mars   C. Mercury   D. Venus
+Answer: C
+
+4. What is the freezing point of water in Celsius?
+A. -10   B. 0   C. 10   D. 100
+Answer: B
+
+5. Which continent is Egypt located on?
+A. Asia   B. Europe   C. Africa   D. South America
+Correct Answer: C
