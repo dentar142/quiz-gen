@@ -25,29 +25,33 @@ chapter:
 
 section:
   # If a paragraph matches ANY of these, switch question-type context.
+  # Patterns are anchored at line start so that question text containing
+  # the keyword ("...本节单选题占多数...") is NOT misread as a section header.
   single_patterns:
-    - '单选题'
-    - '单选'
-    - 'Single[\s\-]*Choice'
-    - 'Single Answer'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*单选题\s*$'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*单项选择题\s*$'
+    - '^\s*单选\s*$'
+    - '^\s*Single[\s\-]*Choice\s*$'
+    - '^\s*Single Answer\s*$'
   multi_patterns:
-    - '多选题'
-    - '多选'
-    - 'Multi[\s\-]*Choice'
-    - 'Multiple[\s\-]*Choice'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*多选题\s*$'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*多项选择题\s*$'
+    - '^\s*多选\s*$'
+    - '^\s*Multi[\s\-]*Choice\s*$'
+    - '^\s*Multiple[\s\-]*Choice\s*$'
   tf_patterns:
-    - '判断题'
-    - '是非题'
-    - 'True[\s/\-]*False'
-    - 'T/F'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*判断题\s*$'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*是非题\s*$'
+    - '^\s*True[\s/\-]*False\s*$'
+    - '^\s*T/F\s*$'
   fill_patterns:
-    - '填空题'
-    - 'Fill[\s\-]*in[\s\-]*the[\s\-]*Blank'
-    - 'Fill in'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*填空题\s*$'
+    - '^\s*Fill[\s\-]*in[\s\-]*the[\s\-]*Blank\s*$'
+    - '^\s*Fill in\s*$'
   short_patterns:
-    - '简答题'
-    - '主观题'
-    - 'Short[\s\-]*Answer'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*简答题\s*$'
+    - '^\s*[一二三四五六七]?\s*[、.]?\s*主观题\s*$'
+    - '^\s*Short[\s\-]*Answer\s*$'
 
 # ---------------------------------------------------------------------
 # Question number prefix (stripped before storing the question text)
@@ -79,17 +83,35 @@ options:
 # ---------------------------------------------------------------------
 # Answer-line detection
 # Capture group 1 = the answer letters / value
+#
+# ORDER MATTERS: strict letter-only patterns come first so that lines like
+#   "答案A"  (no separator)
+#   "答案ABC" (no separator)
+#   "答案 D"  (single space)
+#   "答案：B"
+# all match; the fallback `(.+?)` patterns at the bottom handle fill/short
+# answers where the value is arbitrary text. Without the strict patterns,
+# "答案A" silently falls through and the previous question swallows every
+# subsequent line until a separator-using answer line appears, corrupting
+# the option text of one question and dropping all questions in between.
 # ---------------------------------------------------------------------
 answer:
   patterns:
+    # Strict — letter-only answers, allowing zero or more separators
+    - '^\s*答案[\s:：\.\-]*([ABCDabcd]+)\s*$'
+    - '^\s*正确答案[\s:：\.\-]*([ABCDabcd]+)\s*$'
+    - '^\s*参考答案[\s:：\.\-]*([ABCDabcd]+)\s*$'
+    - '^\s*答\s*[:：]\s*([ABCDabcd]+)\s*$'
+    - '^\s*Answer[\s:：\.\-]*([ABCDabcdTFtf]+)\s*$'
+    - '^\s*Ans[\s:：\.\-]*([ABCDabcdTFtf]+)\s*$'
+    - '^\s*Correct\s+Answer[\s:：\.\-]*([ABCDabcdTFtf]+)\s*$'
+    - '^[\[【]\s*答案\s*[\]】][\s:：\.\-]*([ABCDabcd]+)\s*$'
+    # Fallback — arbitrary text answers (fill / short / TF in 对/错 form)
+    # require at least one separator so they don't false-match heading-like text
     - '^\s*答案[\s:：\.\-]+(.+?)\s*$'
     - '^\s*正确答案[\s:：\.\-]+(.+?)\s*$'
     - '^\s*参考答案[\s:：\.\-]+(.+?)\s*$'
-    - '^\s*答\s*[:：]\s*(.+?)\s*$'
     - '^\s*Answer[\s:：\.\-]+(.+?)\s*$'
-    - '^\s*Ans[\s:：\.\-]+(.+?)\s*$'
-    - '^\s*Correct\s+Answer[\s:：\.\-]+(.+?)\s*$'
-    - '^[\[【]\s*答案\s*[\]】][\s:：\.\-]*(.+?)\s*$'
 
 # ---------------------------------------------------------------------
 # Explanation-line detection

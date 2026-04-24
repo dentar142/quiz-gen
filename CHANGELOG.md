@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.1 — 2026-04-24
+
+### Fixed
+- **Answer-line bleed**: lines like `答案A` / `答案ABC` (no separator between
+  `答案` and the letters) silently fell through the previous `[\s:：\.\-]+`
+  regex, causing the parser to never close that question. The buffer would
+  swallow every subsequent paragraph — including the next several questions
+  — into the previous question's last option, dropping those questions and
+  corrupting one option's text. New strict letter-only patterns
+  (`^\s*答案[\s:：\.\-]*([ABCDabcd]+)\s*$`) match before the fallback
+  free-form patterns. On the reference fixture this recovered 6 previously
+  dropped questions (264 → 270) and reduced suspect-option count from 5 → 0.
+- **Section keyword false-match**: `单选题` / `多选题` etc. patterns were
+  unanchored, so a question containing the word ("...本节单选题占多数...")
+  would falsely flip the type context and reset the buffer. All section
+  patterns are now anchored at line start (`^\s*[一二三四五六七]?\s*[、.]?
+  \s*单选题\s*$`) so only paragraphs that are themselves headings trigger
+  type changes.
+
 ## 2.0.0 — 2026-04-24
 
 ### Added
