@@ -10,10 +10,11 @@
 ![python](https://img.shields.io/badge/python-3.9%2B-yellow)
 
 <p align="center">
-  <img src="https://stone.professorlee.work/api/stone/dentar142/quiz-gen" alt="Stone Badge for quiz-gen" />
+  <img src="./assets/toilet.svg" alt="Toilet Badge for quiz-gen" width="256" />
   <br>
-  <sub>每个仓库一颗独一无二的 3D 旋转石墩子 · powered by
-  <a href="https://github.com/professor-lee/StoneBadge">StoneBadge</a></sub>
+  <sub>程序化 3D 马桶徽章，颜色由 commit SHA 决定 · 每次仓库更新可在
+  <a href="../../actions/workflows/refresh-toilet-badge.yml">Actions</a> 手动刷新 ·
+  forked from <a href="https://github.com/professor-lee/StoneBadge">StoneBadge</a></sub>
 </p>
 
 ---

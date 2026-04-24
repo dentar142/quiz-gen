@@ -1,0 +1,58 @@
+name: Refresh Toilet Badge
+
+# 手动触发：在仓库 Actions 标签页点 "Run workflow"
+# 每次仓库更新后想刷新 README 顶部的马桶徽章颜色就跑一次
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # 需要把生成的 assets/toilet.svg 提交回仓库
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout quiz-gen
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 拉 StoneBadge fork —— 提供模板生成器 + 染色器
+      - name: Clone StoneBadge fork
+        run: git clone --depth=1 https://github.com/dentar142/StoneBadge.git stonebadge
+
+      - name: Install StoneBadge deps
+        working-directory: stonebadge
+        run: npm install --no-audit --no-fund
+
+      # 用程序化马桶模型生成灰度模板，再用 quiz-gen 当前 HEAD SHA 染色
+      - name: Generate + colorize toilet badge
+        env:
+          MODEL: toilet
+        run: |
+          node --input-type=module -e "
+          import { generateTemplate } from './stonebadge/lib/template-generator.js';
+          import { colorizeSVG } from './stonebadge/lib/colorizer.js';
+          import fs from 'fs';
+          const sha = process.env.GITHUB_SHA.substring(0, 7);
+          await generateTemplate('./stonebadge/templates/toilet-template.svg');
+          const svg = colorizeSVG('./stonebadge/templates/toilet-template.svg', sha);
+          fs.mkdirSync('./assets', { recursive: true });
+          fs.writeFileSync('./assets/toilet.svg', svg);
+          console.log('Wrote assets/toilet.svg  SHA=' + sha + '  size=' + svg.length);
+          "
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/toilet.svg
+          if git diff --cached --quiet; then
+            echo "Badge unchanged — nothing to commit."
+          else
+            git commit -m "chore: refresh toilet badge for ${GITHUB_SHA::7}"
+            git push
+          fi
